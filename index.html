@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>H-BIKES</title>
+<link rel="stylesheet" href="style.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar">
+  <div class="nav-container">
+    <h1 class="logo">H-BIKES</h1>
+    <ul class="nav-links">
+  <li><a href="#home">Home</a></li>
+  <li><a href="#products">Products</a></li>
+  <li><a href="#about">About</a></li>
+  <li><a href="#contact">Contact</a></li>
+  <li><a href="#location">Location</a></li>
+  
+  <!-- Logged out: Login/Signup button -->
+  <li id="authLinks">
+    <button id="openAuthBtn" class="btn-login">Login / Sign Up</button>
+  </li>
+  
+<!-- Logged in: greeting + dashboard + logout (combined) -->
+<li id="userLinks" class="hidden nav-user-block">
+<span class="user-greeting">
+  <img id="navAvatar" src="" alt="" style="width:26px;height:26px;border-radius:50%;object-fit:cover;display:none">
+  👋 <span id="navUsername">User</span>
+</span>
+  <button id="dashboardBtn" class="btn-admin">Dashboard</button>
+  <button id="logoutBtn" class="btn-logout">Logout</button>
+</li>
+</ul>
+  </div>
+</nav>
+
+<!-- MAIN SITE VIEW -->
+<div id="mainSite">
+
+  <!-- SLIDESHOW -->
+  <section id="home" class="slideshow-section">
+    <div class="slideshow-container" id="slideshow"></div>
+    <button class="slide-nav prev" onclick="changeSlide(-1)">&#10094;</button>
+    <button class="slide-nav next" onclick="changeSlide(1)">&#10095;</button>
+    <div class="slide-dots" id="slideDots"></div>
+  </section>
+
+  <!-- PRODUCTS -->
+  <section id="products" class="products-section">
+    <h2 class="section-title">Our Products</h2>
+    <div class="view-toggle">
+      <button id="gridViewBtn" class="active">Grid</button>
+      <button id="listViewBtn">List</button>
+    </div>
+    <div id="productContainer" class="product-grid"></div>
+  </section>
+
+<!-- ABOUT -->
+<section id="about" class="about-section">
+  <h2 class="section-title" id="aboutTitle">About Us</h2>
+  
+  <!-- Two-column grid container -->
+  <div id="aboutContainer" class="about-grid-two">
+    <p class="about-desc">Loading…</p>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact" class="contact-section">
+  <h2 class="section-title">Contact Us</h2>
+  <div id="contactContainer" class="contact-info">
+    <p class="about-desc">Loading…</p>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section id="location" class="location-section">
+  <h2 class="section-title">Find Us</h2>
+
+  <div class="location-wrap">
+
+    <!-- Address card -->
+    <div class="location-info">
+      <div class="location-pin">📍</div>
+      <h3 class="location-name">Our Location</h3>
+      <p class="location-address" id="locationAddressText">
+        57PV+M45, Dar es Salaam, Tanzania
+      </p>
+
+      <div class="location-actions">
+        <a
+          class="btn-primary location-btn"
+          href="https://www.google.com/maps/search/?api=1&query=57PV%2BM45%2C%20Dar%20es%20Salaam"
+          target="_blank"
+          rel="noopener noreferrer">
+          🧭 Get Directions
+        </a>
+
+        <button
+          type="button"
+          class="btn-secondary location-btn"
+          onclick="copyLocationAddress(this)">
+          📋 Copy Address
+        </button>
+      </div>
+
+      <div class="location-meta">
+        <p><strong>Plus Code:</strong> 57PV+M45</p>
+        <p><strong>City:</strong> Dar es Salaam</p>
+        <p><strong>Country:</strong> Tanzania</p>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div class="map-container">
+      <iframe
+        id="mapFrame"
+        title="Our Location — Dar es Salaam"
+        src="https://www.google.com/maps?q=57PV%2BM45%2C%20Dar%20es%20Salaam&output=embed"
+        width="100%"
+        height="100%"
+        style="border:0;"
+        allowfullscreen=""
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+    </div>
+
+  </div>
+  
+  <!-- ===================== FOOTER ===================== -->
+<footer id="siteFooter" class="site-footer">
+  <div class="footer-wrap">
+
+    <!-- BRAND -->
+    <div class="footer-col footer-brand">
+      <h3 class="footer-logo" id="footerBrandName">H-BIKES</h3>
+      <p class="footer-tagline" id="footerTagline">
+        Quality products shipped from China to Tanzania — fast and reliable.
+      </p>
+      <div class="footer-socials" id="footerSocials">
+        <!-- populated live from contacts (type: social) -->
+      </div>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div class="footer-col">
+      <h4 class="footer-heading">Quick Links</h4>
+      <ul class="footer-links" id="footerQuickLinks">
+        <li><a href="#home">Home</a></li>
+        <li><a href="#products">Products</a></li>
+        <li><a href="#about">About Us</a></li>
+        <li><a href="#contact">Contact</a></li>
+        <li><a href="#location">Find Us</a></li>
+      </ul>
+    </div>
+
+    <!-- CONTACT -->
+    <div class="footer-col">
+      <h4 class="footer-heading">Get in Touch</h4>
+      <ul class="footer-contact" id="footerContactList">
+        <!-- populated live from contacts -->
+        <li>Loading…</li>
+      </ul>
+    </div>
+
+    <!-- NEWSLETTER -->
+    <div class="footer-col">
+      <h4 class="footer-heading">Stay Updated</h4>
+      <p class="footer-note">
+        Get notified about new arrivals and special offers.
+      </p>
+      <form id="footerNewsletterForm" class="footer-newsletter">
+        <input
+          type="email"
+          id="footerNewsletterEmail"
+          placeholder="Your email address"
+          autocomplete="email"
+          required>
+        <button type="submit" class="btn-primary">
+          📩 Subscribe
+        </button>
+      </form>
+      <p id="footerNewsletterMsg" class="footer-msg"></p>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div class="footer-bottom">
+    <p class="footer-copy" id="footerCopyright">
+      © <span id="footerYear"></span> H-BIKES. All rights reserved.
+    </p>
+    <p class="footer-credit" id="footerCredit">
+      Made with ❤️ in Dar es Salaam
+    </p>
+  </div>
+</footer>
+</section>
+</div>
+
+<!-- PRODUCT MODAL (shared for slide details and product details) -->
+<div id="productModal" class="modal">
+  <div class="modal-content">
+    <span class="close-modal" onclick="closeProductModal()">&times;</span>
+    <div class="modal-media">
+      <img id="modalImage" src="" alt="">
+      <video id="modalVideo" controls style="display:none;"></video>
+    </div>
+<div class="modal-info">
+  <h2 id="modalTitle"></h2>
+  <p id="modalPrice" class="price-tag"></p>
+  <p id="modalShipTag" class="ship-tag"></p>
+  <p id="modalDesc"></p>
+  
+  <!-- Quantity selector -->
+  <div class="qty-wrap">
+    <span class="qty-label">Quantity</span>
+    <div class="qty-stepper">
+      <button type="button" class="qty-btn" id="qtyMinus" aria-label="Decrease">−</button>
+      <input type="number" id="qtyInput" value="1" min="1" max="99" readonly>
+      <button type="button" class="qty-btn" id="qtyPlus" aria-label="Increase">+</button>
+    </div>
+  </div>
+  
+  <div class="modal-actions">
+    <button class="btn-add-cart" id="modalAddCart">🛒 Add to Cart</button>
+    <button class="btn-place-order" id="modalPlaceOrder">⚡ Place Order</button>
+  </div>
+</div>
+  </div>
+</div>
+
+<!-- AUTH VIEW (full window, no modal) -->
+<div id="authView" class="auth-view hidden">
+  <div class="auth-card">
+    <button class="auth-back" onclick="closeAuth()">&larr; Back</button>
+    <h2 id="authTitle">Login</h2>
+
+    <div class="auth-tabs">
+      <button id="tabLogin" class="auth-tab active">Login</button>
+      <button id="tabSignup" class="auth-tab">Sign Up</button>
+    </div>
+
+<!-- LOGIN FORM -->
+<form id="loginForm" class="auth-form">
+  <input type="text" id="loginIdentifier"
+         placeholder="Username, Phone Number, or Email"
+         required
+         autocomplete="username">
+
+  <div class="password-wrap">
+    <input type="password" id="loginPassword"
+           placeholder="Password"
+           required
+           autocomplete="current-password">
+    <button type="button" class="toggle-eye"
+            onclick="togglePassword('loginPassword', this)"
+            aria-label="Show password">👁️</button>
+  </div>
+
+  <button type="submit" class="btn-primary">Login</button>
+  <p id="loginError" class="error-msg"></p>
+</form>
+
+<!-- SIGNUP FORM -->
+<form id="signupForm" class="auth-form hidden">
+  <input type="text" id="signupUsername" placeholder="Username" required autocomplete="username">
+  
+  <input type="tel" id="signupPhone" placeholder="Phone Number" required autocomplete="tel">
+  
+  <input type="email" id="signupEmail" placeholder="Email" required autocomplete="email">
+  
+  <div class="password-wrap">
+    <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" required minlength="6" autocomplete="new-password">
+    <button type="button" class="toggle-eye" onclick="togglePassword('signupPassword', this)" aria-label="Show password">👁️</button>
+  </div>
+  
+  <div class="password-wrap">
+    <input type="password" id="signupConfirm" placeholder="Confirm Password" required minlength="6" autocomplete="new-password">
+    <button type="button" class="toggle-eye" onclick="togglePassword('signupConfirm', this)" aria-label="Show password">👁️</button>
+  </div>
+  
+  <label class="terms-label">
+    <input type="checkbox" id="signupTerms" required>
+    <span>I agree to the <a href="#" onclick="openTerms(event)">Terms &amp; Conditions</a></span>
+  </label>
+  
+  <button type="submit" class="btn-primary">Create Account</button>
+  <p id="signupError" class="error-msg"></p>
+  <p id="signupSuccess" class="success-msg"></p>
+</form>
+  </div>
+</div>
+
+<!-- ===================== USER DASHBOARD ===================== -->
+<div id="userDashboard" class="dashboard-view hidden">
+
+  <!-- Hamburger top bar -->
+  <header class="ud-header">
+    <button id="udMenuBtn" class="ud-hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <h2 class="ud-title">My Dashboard</h2>
+    <span class="ud-avatar" id="udAvatar">U</span>
+  </header>
+
+  <!-- Slide-in sidebar -->
+  <aside id="udSidebar" class="ud-sidebar">
+    <div class="ud-side-head">
+      <span class="ud-avatar lg" id="udSideAvatar">U</span>
+      <div>
+        <p class="ud-side-name" id="udSideName">User</p>
+        <p class="ud-side-role">User Account</p>
+      </div>
+      <button class="ud-close" id="udCloseBtn" aria-label="Close menu">&times;</button>
+    </div>
+
+    <nav class="ud-nav">
+      <button class="ud-nav-btn active" data-ud="home">
+        <span class="ud-ic">🏠</span> Home
+      </button>
+
+      <button class="ud-nav-btn" data-ud="profile">
+        <span class="ud-ic">👤</span> Profile
+      </button>
+      <button class="ud-nav-btn" data-ud="cart">
+        <span class="ud-ic">🛒</span> Cart
+        <span class="ud-badge" id="udCartCount">0</span>
+      </button>
+      <button class="ud-nav-btn" data-ud="bills">
+        <span class="ud-ic">🧾</span> My Bills
+      </button>
+   <button class="ud-nav-btn" data-ud="progress">
+  <span class="ud-ic">📦</span> Product Progress
+  <small class="ud-sub">China → Tanzania</small>
+</button>
+    </nav>
+
+    <div class="ud-side-foot">
+      <button class="btn-secondary ud-go-site" onclick="goHome()">← Buy Now</button>
+      <button class="btn-logout ud-logout" onclick="logoutUser()">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Backdrop -->
+  <div id="udBackdrop" class="ud-backdrop"></div>
+
+  <!-- Content panels -->
+  <main class="ud-content">
+
+    <!-- HOME -->
+    <section class="ud-panel active" id="ud-home">
+      <div class="ud-card">
+        <h3>Welcome back, <span id="udName">User</span> 👋</h3>
+        <p>Browse our latest products and track your orders here.</p>
+      </div>
+      <div class="ud-stats">
+        <div class="ud-stat"><span>🛒</span><p>Cart Items</p><h4 id="udStatCart">0</h4></div>
+        <div class="ud-stat"><span>🧾</span><p>Pending Bills</p><h4 id="udStatBills">0</h4></div>
+        <div class="ud-stat"><span>📦</span><p>In Progress</p><h4 id="udStatProgress">0</h4></div>
+      </div>
+      <div class="ud-card">
+        <h3>Quick Actions</h3>
+        <div class="ud-quick">
+          <button class="btn-primary" onclick="udGo('cart')">🛒 View Cart</button>
+          <button class="btn-secondary" onclick="udGo('bills')">🧾 My Bills</button>
+          <button class="btn-secondary" onclick="udGo('progress')">📦 Track Order</button>
+        </div>
+      </div>
+    </section>
+
+<!-- PROFILE -->
+<section class="ud-panel" id="ud-profile">
+
+  <!-- ============ HEADER CARD ============ -->
+  <div class="ud-card profile-header-card">
+    <div class="profile-header">
+      <div class="profile-avatar-wrap">
+        <img id="profileAvatarImg" src="" alt="" class="profile-avatar-img">
+        <div id="profileAvatarInitial" class="profile-avatar-initial">U</div>
+        <button type="button" class="profile-avatar-edit" id="profileAvatarBtn" title="Change photo">
+          📷
+        </button>
+        <input type="file" id="profileAvatarInput" accept="image/*" hidden>
+      </div>
+      <div class="profile-header-info">
+        <h3 id="profileHeaderName">User</h3>
+        <p id="profileHeaderEmail" class="profile-header-email">—</p>
+        <span id="profileHeaderRole" class="profile-role-badge">user</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ ACCOUNT STATS ============ -->
+  <div class="ud-stats profile-stats">
+    <div class="ud-stat"><span>🛒</span><p>Cart</p><h4 id="profileStatCart">0</h4></div>
+<div class="ud-stat"><span>🧾</span><p>Orders</p><h4 id="adStatOrders">0</h4></div>
+    <div class="ud-stat"><span>📦</span><p>Shipments</p><h4 id="profileStatProgress">0</h4></div>
+  </div>
+
+  <!-- ============ PERSONAL INFO (read-only view) ============ -->
+  <div class="ud-card">
+    <div class="profile-card-head">
+      <h3>👤 Personal Information</h3>
+      <button type="button" class="btn-secondary btn-sm" id="profileEditBtn">✏️ Edit</button>
+    </div>
+
+    <div class="profile-view">
+      <div class="profile-view-row">
+        <span class="profile-view-label">Username</span>
+        <span id="pvUsername" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">Full Name</span>
+        <span id="pvFullName" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">Phone</span>
+        <span id="pvPhone" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">Email</span>
+        <span id="pvEmail" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">Address</span>
+        <span id="pvAddress" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">City</span>
+        <span id="pvCity" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">Country</span>
+        <span id="pvCountry" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">About</span>
+        <span id="pvBio" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">Member Since</span>
+        <span id="pvJoined" class="profile-view-value">—</span>
+      </div>
+      <div class="profile-view-row">
+        <span class="profile-view-label">Status</span>
+        <span id="pvStatus" class="status-pill active">Active</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ SECURITY ============ -->
+  <div class="ud-card">
+    <h3>🔒 Security</h3>
+    <p class="profile-hint">Change your password. You'll stay logged in on this device.</p>
+    <button type="button" class="btn-secondary" id="openChangePasswordBtn">
+      🔑 Change Password
+    </button>
+  </div>
+
+  <!-- ============ DANGER ZONE ============ -->
+  <div class="ud-card profile-danger">
+    <h3>⚠️ Danger Zone</h3>
+    <p class="profile-hint">
+      Request to deactivate your account. An administrator will review and process your request.
+      Your orders and bills will remain for record-keeping.
+    </p>
+    <button type="button" class="btn-delete" id="requestDeactivateBtn">
+      🗑️ Request Account Deactivation
+    </button>
+  </div>
+</section>
+
+<!-- ============ CHANGE PASSWORD MODAL ============ -->
+<div id="changePasswordModal" class="modal">
+  <div class="modal-content payment-modal-content">
+    <span class="close-modal" onclick="closeChangePasswordModal()">&times;</span>
+    <h2 class="pay-title">🔑 Change Password</h2>
+    <p class="pay-sub">Enter your current password to confirm.</p>
+
+    <form id="changePasswordForm" class="admin-form">
+      <label>Current Password</label>
+      <div class="password-wrap">
+        <input type="password" id="cpCurrent" required autocomplete="current-password">
+        <button type="button" class="toggle-eye" onclick="togglePassword('cpCurrent', this)">👁️</button>
+      </div>
+
+      <label>New Password <small>(min 6 chars)</small></label>
+      <div class="password-wrap">
+        <input type="password" id="cpNew" required minlength="6" autocomplete="new-password">
+        <button type="button" class="toggle-eye" onclick="togglePassword('cpNew', this)">👁️</button>
+      </div>
+
+      <label>Confirm New Password</label>
+      <div class="password-wrap">
+        <input type="password" id="cpConfirm" required minlength="6" autocomplete="new-password">
+        <button type="button" class="toggle-eye" onclick="togglePassword('cpConfirm', this)">👁️</button>
+      </div>
+
+      <p id="cpError" class="error-msg"></p>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">💾 Update Password</button>
+        <button type="button" class="btn-secondary" onclick="closeChangePasswordModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+    <!-- CART -->
+    <section class="ud-panel" id="ud-cart">
+      <div class="ud-card">
+        <h3>🛒 My Cart</h3>
+        <div id="udCartList" class="ud-list">
+          <p class="ud-empty">Your cart is empty.</p>
+        </div>
+        <div class="ud-cart-total" id="udCartTotalWrap" style="display:none">
+          <p>Total: <strong id="udCartTotal">$0</strong></p>
+          <button class="btn-primary" onclick="udCheckout()">Checkout</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- BILLS -->
+    <section class="ud-panel" id="ud-bills">
+      <div class="ud-card">
+        <h3>🧾 My Bills</h3>
+        <div id="udBillsList" class="ud-list">
+          <p class="ud-empty">No bills yet.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCT PROGRESS (SAFARINI) -->
+    <section class="ud-panel" id="ud-progress">
+      <div class="ud-card">
+        <h3>📦 Product Progress <small class="ud-sub">Safarini</small></h3>
+        <div id="udProgressList" class="ud-list">
+          <p class="ud-empty">No shipments in progress.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ===================== ADMIN DASHBOARD ===================== -->
+<div id="adminDashboard" class="dashboard-view hidden">
+
+  <!-- Top bar -->
+  <header class="ad-header">
+    <button id="adMenuBtn" class="ud-hamburger" aria-label="Open menu">
+      <span></span><span></span><span></span>
+    </button>
+    <h2 class="ad-title">Admin Panel</h2>
+    <span class="ud-avatar" id="adAvatar">A</span>
+  </header>
+
+  <!-- Sidebar -->
+  <aside id="adSidebar" class="ud-sidebar">
+    <div class="ud-side-head">
+      <span class="ud-avatar lg" id="adSideAvatar">A</span>
+      <div>
+        <p class="ud-side-name" id="adSideName">Admin</p>
+        <p class="ud-side-role">Administrator</p>
+      </div>
+      <button class="ud-close" id="adCloseBtn" aria-label="Close menu">&times;</button>
+    </div>
+
+    <nav class="ud-nav">
+      <button class="ud-nav-btn active" data-ad="overview">
+        <span class="ud-ic">📊</span> Overview
+      </button>
+      <button class="ud-nav-btn" data-ad="products">
+        <span class="ud-ic">📦</span> Products
+      </button>
+      <button class="ud-nav-btn" data-ad="slides">
+        <span class="ud-ic">🎞️</span> Slides
+      </button>
+      <button class="ud-nav-btn" data-ad="about">
+  <span class="ud-ic">ℹ️</span> About
+</button>
+<button class="ud-nav-btn" data-ad="payments">
+  <span class="ud-ic">💳</span> Payments
+</button>
+<button class="ud-nav-btn" data-ad="orders">
+  <span class="ud-ic">📥</span> Orders
+  <span class="ud-badge" id="adOrdersBadge">0</span>
+</button>
+<button class="ud-nav-btn" data-ad="progress">
+  <span class="ud-ic">📦</span> Shipments
+</button>
+      <button class="ud-nav-btn" data-ad="contact">
+        <span class="ud-ic">📞</span> Contact
+      </button>
+      <button class="ud-nav-btn" data-ad="footer">
+  <span class="ud-ic">🦶</span> Footer
+</button>
+    </nav>
+
+    <div class="ud-side-foot">
+      <button class="btn-secondary ud-go-site" onclick="goHome()">← Back to Site</button>
+      <button class="btn-logout ud-logout" onclick="logoutUser()">Logout</button>
+    </div>
+  </aside>
+
+  <!-- Backdrop -->
+  <div id="adBackdrop" class="ud-backdrop"></div>
+
+  <!-- Content -->
+  <main class="ud-content">
+    
+    <!-- PROGRESS CONTROL -->
+<section class="ud-panel" id="ad-progress">
+  <div class="ud-card">
+    <h3>📦 Active Shipments (Safarini)</h3>
+    <div id="adminProgressList" class="ud-list">
+      <p class="ud-empty">No active shipments.</p>
+    </div>
+  </div>
+</section>
+    
+    <!-- ORDERS -->
+<section class="ud-panel" id="ad-orders">
+  <div class="ud-card">
+    <h3>Pending Orders</h3>
+    <div id="adminPendingOrders" class="ud-list">
+      <p class="ud-empty">No pending orders.</p>
+    </div>
+  </div>
+  <div class="ud-card">
+    <h3>All Orders</h3>
+    <div id="adminAllOrders" class="ud-list"></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<section class="ud-panel" id="ad-footer">
+  <div class="ud-card">
+    <h3>🦶 Footer Settings</h3>
+    <form id="footerSettingsForm" class="admin-form">
+      <label>Brand Name</label>
+      <input type="text" id="ftBrandName" placeholder="e.g. H-BIKES">
+
+      <label>Tagline</label>
+      <textarea id="ftTagline" placeholder="Short description under the logo" style="min-height:80px"></textarea>
+
+      <label>Copyright Text <small>(year is added automatically)</small></label>
+      <input type="text" id="ftCopyright" placeholder="e.g. H-BIKES. All rights reserved.">
+
+      <label>Bottom Credit Line</label>
+      <input type="text" id="ftCredit" placeholder="e.g. Made with ❤️ in Dar es Salaam">
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">💾 Save Footer</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="ud-card">
+    <h3>🔗 Quick Links</h3>
+    <p class="profile-hint">
+      Customize the links shown in the footer. If empty, the defaults are used.
+    </p>
+
+    <form id="footerLinkForm" class="admin-form">
+      <input type="hidden" id="ftLinkIndex">
+      <label>Label</label>
+      <input type="text" id="ftLinkLabel" placeholder="e.g. Shipping Policy">
+
+      <label>URL <small>(#section or https://…)</small></label>
+      <input type="text" id="ftLinkHref" placeholder="e.g. #products">
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">💾 Save Link</button>
+        <button type="button" class="btn-secondary" onclick="resetFooterLinkForm()">Cancel</button>
+      </div>
+    </form>
+
+    <div id="adminFooterLinkList" class="ud-list" style="margin-top:14px"></div>
+  </div>
+
+  <div class="ud-card">
+    <h3>📬 Newsletter Subscribers <span class="ud-sub" id="adSubscriberCount">0</span></h3>
+    <div id="adminSubscriberList" class="ud-list">
+      <p class="ud-empty">No subscribers yet.</p>
+    </div>
+  </div>
+</section>
+
+<!-- PAYMENTS -->
+<section class="ud-panel" id="ad-payments">
+  <div class="ud-card">
+    <h3 id="adPayFormTitle">➕ Add Payment Method</h3>
+    <form id="paymentForm" class="admin-form">
+      <input type="hidden" id="payId">
+
+      <label>Payment Type</label>
+      <div class="radio-row">
+        <label class="radio-opt"><input type="radio" name="payType" value="bank" checked><span>🏦 Bank</span></label>
+        <label class="radio-opt"><input type="radio" name="payType" value="mobile"><span>📱 Mobile Money</span></label>
+        <label class="radio-opt"><input type="radio" name="payType" value="lipa"><span>🔢 Lipa No</span></label>
+      </div>
+
+      <label>Method Name</label>
+      <input type="text" id="payNameInput" placeholder="e.g. CRDB Bank" required>
+
+      <label>Account Name (Full Name)</label>
+      <input type="text" id="payAccountNameInput" placeholder="e.g. H-BIKES Ltd" required>
+
+      <label>Account Number</label>
+      <input type="text" id="payAccountNumberInput" placeholder="e.g. 0150123456789">
+
+      <label>Phone Number <small>(for mobile money)</small></label>
+      <input type="text" id="payPhoneInput" placeholder="e.g. 255700000000">
+
+      <label>Lipa Number <small>(for lipa no only)</small></label>
+      <input type="text" id="payLipaInput" placeholder="e.g. 5512345">
+
+      <label>Custom Instructions <small>(leave blank to auto-generate)</small></label>
+      <textarea id="payInstructionsInput" placeholder="Auto-generated if left blank" style="min-height:120px"></textarea>
+
+      <label>Display Order</label>
+      <input type="number" id="payOrderInput" value="1" min="1">
+
+      <label class="switch-row">
+        <input type="checkbox" id="payActiveInput" checked>
+        <span>Active (show to users)</span>
+      </label>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">💾 Save Payment Method</button>
+        <button type="button" onclick="resetPaymentForm()" class="btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="ud-card">
+    <h3>All Payment Methods <span class="ud-sub" id="adPayCount">0</span></h3>
+    <div id="adminPaymentList" class="ud-list"></div>
+  </div>
+</section>
+
+    <!-- OVERVIEW -->
+    <section class="ud-panel active" id="ad-overview">
+      <div class="ud-card">
+        <h3>Welcome back, <span id="adName">Admin</span> 👋</h3>
+        <p>Here's what's happening with your store today.</p>
+      </div>
+      <div class="ud-stats">
+        <div class="ud-stat"><span>📦</span><p>Products</p><h4 id="adStatProducts">0</h4></div>
+        <div class="ud-stat"><span>🎞️</span><p>Slides</p><h4 id="adStatSlides">0</h4></div>
+        <div class="ud-stat"><span>👥</span><p>Users</p><h4 id="adStatUsers">0</h4></div>
+      </div>
+      <div class="ud-card">
+        <h3>Quick Actions</h3>
+        <div class="ud-quick">
+          <button class="btn-primary" onclick="adGo('products')">➕ Add Product</button>
+          <button class="btn-secondary" onclick="adGo('slides')">➕ Add Slide</button>
+          <button class="btn-secondary" onclick="adGo('about')">✏️ Edit About</button>
+        </div>
+      </div>
+    </section>
+
+<!-- PRODUCTS -->
+<section class="ud-panel" id="ad-products">
+  <div class="ud-card">
+    <h3 id="adProductFormTitle">➕ Add New Product</h3>
+    <form id="productForm" class="admin-form">
+      <input type="hidden" id="productId">
+      
+      <label>Product Name</label>
+      <input type="text" id="productName" placeholder="e.g. iPhone 15 Pro" required>
+      
+<!-- ============ PRICE ============ -->
+<label>Price <small>(Tanzanian Shillings)</small></label>
+<input
+  type="text"
+  id="productPrice"
+  data-money
+  inputmode="numeric"
+  autocomplete="off"
+  placeholder="e.g. 50,000"
+  required>
+
+<!-- ============ SHIPPING FEE ============ -->
+<label>Shipping Fee</label>
+<div class="radio-row">
+  <label class="radio-opt">
+    <input type="radio" name="shippingType" value="free" checked>
+    <span>🆓 Free Shipping</span>
+  </label>
+  <label class="radio-opt">
+    <input type="radio" name="shippingType" value="paid">
+    <span>🚚 Add Shipping Fee</span>
+  </label>
+</div>
+
+<div id="shippingAmountWrap" class="hidden">
+  <label>Shipping Amount <small>(Tanzanian Shillings)</small></label>
+  <input
+    type="text"
+    id="shippingAmount"
+    data-money
+    inputmode="numeric"
+    autocomplete="off"
+    placeholder="e.g. 25,000">
+</div>
+      
+      <div id="shippingAmountWrap" class="hidden">
+        <label>Shipping Amount</label>
+        <input type="text" id="shippingAmount" placeholder="e.g. 25 or $25">
+      </div>
+      
+      <label>Media Type</label>
+      <div class="radio-row">
+        <label class="radio-opt">
+          <input type="radio" name="mediaType" value="image" checked>
+          <span>🖼️ Image</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="mediaType" value="video">
+          <span>🎥 Video</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="mediaType" value="youtube">
+          <span>▶️ YouTube</span>
+        </label>
+      </div>
+      
+      <label id="mediaUrlLabel">Image URL</label>
+      <input type="text" id="productMediaUrl" placeholder="https://..." required>
+      
+      <div id="youtubePreviewWrap" class="hidden yt-preview">
+        <p class="yt-hint">YouTube preview:</p>
+        <iframe id="youtubePreview" src="" allowfullscreen></iframe>
+      </div>
+      
+<label>Description</label>
+<textarea id="productDesc" placeholder="Short product description…
+
+Tip: new lines become paragraphs. Start lines with - for bullets." required></textarea>
+
+<div class="desc-preview-wrap">
+  <p class="desc-preview-label">Live preview:</p>
+  <div id="productDescPreview" class="desc-preview formatted"></div>
+</div>
+      
+      <label class="switch-row">
+        <input type="checkbox" id="productActive" checked>
+        <span>Active (visible on site)</span>
+      </label>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">💾 Save Product</button>
+        <button type="button" onclick="resetProductForm()" class="btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
+  
+  <div class="ud-card">
+    <h3>All Products <span class="ud-sub" id="adProductCount">0</span></h3>
+    <div id="adminProductList" class="ud-list"></div>
+  </div>
+</section>
+
+    <!-- SLIDES -->
+    <section class="ud-panel" id="ad-slides">
+      <div class="ud-card">
+        <h3 id="adSlideFormTitle">➕ Add New Slide</h3>
+        <form id="slideForm" class="admin-form">
+          <input type="hidden" id="slideId">
+          <label>Slide Title</label>
+          <input type="text" id="slideTitle" placeholder="e.g. Summer Sale" required>
+
+          <label>Price Tag</label>
+          <input type="text" id="slidePrice" placeholder="e.g. From $99" required>
+
+          <label>Image URL</label>
+          <input type="text" id="slideImage" placeholder="https://..." required>
+
+          <label>Video URL <small>(optional)</small></label>
+          <input type="text" id="slideVideo" placeholder="https://...">
+
+          <label>Description</label>
+<textarea id="slideDesc" placeholder="Short slide description…
+
+Tip: new lines become paragraphs. Start lines with - for bullets." required></textarea>
+
+<div class="desc-preview-wrap">
+  <p class="desc-preview-label">Live preview:</p>
+  <div id="slideDescPreview" class="desc-preview formatted"></div>
+</div>
+
+          <label class="switch-row">
+            <input type="checkbox" id="slideActive" checked>
+            <span>Active (show in slideshow)</span>
+          </label>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">💾 Save Slide</button>
+            <button type="button" onclick="resetSlideForm()" class="btn-secondary">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="ud-card">
+        <h3>All Slides <span class="ud-sub" id="adSlideCount">0</span></h3>
+        <div id="adminSlideList" class="ud-list"></div>
+      </div>
+    </section>
+
+<!-- ABOUT -->
+<section class="ud-panel" id="ad-about">
+  <!-- Form (Add / Edit) -->
+  <div class="ud-card">
+    <h3 id="adAboutFormTitle">➕ Add About Item</h3>
+    <form id="aboutForm" class="admin-form">
+      <input type="hidden" id="aboutId">
+      
+      <label>Description</label>
+<textarea id="aboutDescInput" placeholder="Tell your story…
+
+Tip:
+• Use new lines to create paragraphs
+• Start lines with - or * for bullets
+• Start lines with 1. 2. 3. for numbers" style="min-height:140px" required></textarea>
+
+<div class="desc-preview-wrap">
+  <p class="desc-preview-label">Live preview:</p>
+  <div id="aboutDescPreview" class="desc-preview formatted"></div>
+</div>
+      
+      <label>Description</label>
+      <textarea id="aboutDescInput" placeholder="Tell your story…" style="min-height:140px" required></textarea>
+      
+      <label>Image URL <small>(optional)</small></label>
+      <input type="text" id="aboutImageInput" placeholder="https://...">
+      
+      <label>Link URL <small>(optional — makes the card clickable)</small></label>
+<input
+  type="text"
+  id="aboutLinkInput"
+  placeholder="e.g. https://example.com/story or #products">
+      
+      <label class="switch-row">
+        <input type="checkbox" id="aboutActiveInput" checked>
+        <span>Active (show on homepage)</span>
+      </label>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">💾 Save Item</button>
+        <button type="button" onclick="resetAboutForm()" class="btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- List of existing About items -->
+  <div class="ud-card">
+    <h3>All About Items <span class="ud-sub" id="adAboutCount">0</span></h3>
+    <div id="adminAboutList" class="ud-list"></div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="ud-panel" id="ad-contact">
+  <div class="ud-card">
+    <h3 id="adContactFormTitle">➕ Add Contact Item</h3>
+    <form id="contactItemForm" class="admin-form">
+      <input type="hidden" id="contactId">
+      
+      <label>Contact Type</label>
+      <div class="radio-row">
+        <label class="radio-opt">
+          <input type="radio" name="contactType" value="phone" checked>
+          <span>📱 Phone</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="contactType" value="email">
+          <span>✉️ Email</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="contactType" value="social">
+          <span>🔗 Social Media</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="contactType" value="other">
+          <span>🔧 Other</span>
+        </label>
+      </div>
+      
+      <!-- Social media platform (only when type = social) -->
+      <div id="socialPlatformWrap" class="hidden">
+        <label>Social Platform</label>
+        <select id="contactPlatform">
+          <option value="facebook">Facebook</option>
+          <option value="instagram">Instagram</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="tiktok">TikTok</option>
+          <option value="twitter">Twitter / X</option>
+          <option value="youtube">YouTube</option>
+          <option value="linkedin">LinkedIn</option>
+          <option value="telegram">Telegram</option>
+          <option value="snapchat">Snapchat</option>
+          <option value="pinterest">Pinterest</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      
+      <label id="contactLabelField">Label</label>
+      <input type="text" id="contactLabelInput" placeholder="e.g. Call Us" required>
+      
+      <label id="contactValueField">Value</label>
+      <input type="text" id="contactValueInput" placeholder="e.g. +255 700 000 000" required>
+      
+      <label>Icon Code <small>(emoji, HTML entity, or &lt;i class="fa fa-..."&gt;&lt;/i&gt;)</small></label>
+      <input type="text" id="contactIconInput" placeholder="e.g. 📞 or &#9742; or &lt;i class='fab fa-facebook'&gt;&lt;/i&gt;">
+      <p class="form-hint" id="contactIconHint">Leave blank to use a default icon based on type</p>
+      
+      <label class="switch-row">
+        <input type="checkbox" id="contactActiveInput" checked>
+        <span>Active (show on site)</span>
+      </label>
+      
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">💾 Save Contact</button>
+        <button type="button" onclick="resetContactForm()" class="btn-secondary">Cancel</button>
+      </div>
+    </form>
+  </div>
+  
+  <!-- Existing contact items -->
+  <div class="ud-card">
+    <h3>All Contact Items <span class="ud-sub" id="adContactCount">0</span></h3>
+    <div id="adminContactList" class="ud-list"></div>
+  </div>
+  
+  <div class="ud-card">
+  <h3>📍 Location Settings</h3>
+  <form id="locationSettingsForm" class="admin-form">
+    <label>Address (displayed on site)</label>
+    <input type="text" id="locationAddressInput"
+           placeholder="e.g. 57PV+M45, Dar es Salaam, Tanzania">
+
+    <label>Google Maps Embed URL</label>
+    <input type="text" id="locationMapInput"
+           placeholder="https://www.google.com/maps?q=...&output=embed">
+
+    <label>Google Maps Directions URL</label>
+    <input type="text" id="locationDirectionsInput"
+           placeholder="https://www.google.com/maps/search/?api=1&query=...">
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">💾 Save Location</button>
+    </div>
+  </form>
+</div>
+  
+  <!-- Map URL settings (separate from contact items) -->
+  <div class="ud-card">
+    <h3>📍 Google Maps Location</h3>
+    <form id="contactMapForm" class="admin-form">
+      <label>Google Maps Embed URL</label>
+      <input type="text" id="contactMapInput" placeholder="https://www.google.com/maps/embed?...">
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">💾 Save Map</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+  </main>
+</div>
+
+<!-- SUPERADMIN DASHBOARD -->
+<div id="superDashboard" class="dashboard-view hidden">
+  <div class="dashboard-header">
+    <h2>👑 Superadmin Dashboard</h2>
+    <div>
+      <button class="btn-secondary" onclick="goHome()">Home</button>
+      <button class="btn-logout" onclick="logoutUser()">Logout</button>
+    </div>
+  </div>
+  <div class="dashboard-body">
+    <div class="dash-card"><h3>System Overview</h3><p>Full control over users, admins, and content.</p></div>
+    <div class="dash-card">
+      <h3>Manage Users</h3>
+      <div id="userManagementList"></div>
+    </div>
+    <div class="dash-card">
+      <h3>System Stats</h3>
+      <p>Total Users: <span id="statUsers">0</span></p>
+      <p>Total Products: <span id="statProducts">0</span></p>
+      <p>Total Slides: <span id="statSlides">0</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAYMENT FORM MODAL ===================== -->
+<div id="paymentModal" class="modal">
+  <div class="modal-content payment-modal-content">
+    <span class="close-modal" onclick="closePaymentModal()">&times;</span>
+    <h2 class="pay-title">💳 Complete Payment</h2>
+    <p class="pay-sub">Order Total: <strong id="payGrandTotal">$0</strong></p>
+
+    <!-- STEP 1: choose method -->
+    <div id="payStep1">
+      <label class="pay-label">Payment Type</label>
+      <div class="pay-type-row">
+        <button type="button" class="pay-type-btn active" data-paytype="bank">🏦 Bank</button>
+        <button type="button" class="pay-type-btn" data-paytype="mobile">📱 Mobile Money</button>
+        <button type="button" class="pay-type-btn" data-paytype="lipa">🔢 Lipa No</button>
+      </div>
+
+      <label class="pay-label">Select Method</label>
+      <select id="payMethodSelect" class="pay-select">
+        <option value="">— Loading… —</option>
+      </select>
+
+      <div id="payMethodDetails" class="pay-method-details hidden">
+        <p id="payMethodName" class="pay-method-name"></p>
+        <p id="payAccountName" class="pay-line"></p>
+        <p id="payAccountNumber" class="pay-line"></p>
+        <p id="payLipaNumber" class="pay-line hidden"></p>
+        <pre id="payInstructions" class="pay-instructions"></pre>
+      </div>
+
+      <div id="payFallback" class="pay-fallback hidden">
+        <p class="pay-warn">⚠️ This method is not yet configured by admin. You can still pay manually:</p>
+        <ul class="pay-fallback-list">
+          <li>Use any bank / mobile money account you trust</li>
+          <li>Send the exact amount to the business owner</li>
+          <li>Enter your payment details below and submit</li>
+          <li>Admin will verify and approve your order</li>
+        </ul>
+      </div>
+
+      <label class="pay-label">Full Name (Account Name)</label>
+      <input type="text" id="payFullName" class="pay-input" placeholder="e.g. John Doe" required>
+
+      <label class="pay-label">Phone Number or Account Number</label>
+      <input type="text" id="payPhoneOrAccount" class="pay-input" placeholder="e.g. 255700000000 or 0150123456789" required>
+
+      <button type="button" class="btn-primary pay-submit" onclick="submitPayment()">
+        ✅ Submit Payment
+      </button>
+    </div>
+
+    <!-- STEP 2: waiting for approval -->
+    <div id="payStep2" class="hidden">
+      <div class="pay-waiting">
+        <div class="pay-spinner"></div>
+        <h3>Payment Submitted!</h3>
+        <p>Your order is now <strong>awaiting admin approval</strong>.</p>
+        <p class="pay-ref">Reference: <strong id="payReference"></strong></p>
+        <p class="pay-hint">You'll see your receipt & invoice in <strong>My Bills</strong> once approved.</p>
+        <button type="button" class="btn-primary" onclick="closePaymentModal(); udGo('bills')">
+          🧾 Go to My Bills
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ EDIT PROFILE MODAL ============ -->
+<div id="editProfileModal" class="modal">
+  <div class="modal-content payment-modal-content">
+    <span class="close-modal" onclick="closeEditProfileModal()">&times;</span>
+    <h2 class="pay-title">✏️ Edit Profile</h2>
+    <p class="pay-sub">Update your personal information below.</p>
+
+    <form id="editProfileForm" class="admin-form">
+      <!-- Username (read-only) -->
+      <label>Username <small>(cannot be changed)</small></label>
+      <input type="text" id="epUsername" readonly class="pf-readonly">
+
+      <!-- Full name -->
+      <label>Full Name</label>
+      <input type="text" id="epFullName" placeholder="e.g. John Doe">
+
+      <!-- Phone -->
+      <label>Phone Number</label>
+      <input type="tel" id="epPhone" placeholder="e.g. +255 700 000 000">
+
+      <!-- Email (read-only) -->
+      <label>Email <small>(used for login)</small></label>
+      <input type="email" id="epEmail" readonly class="pf-readonly">
+
+      <!-- Address -->
+      <label>Address</label>
+      <input type="text" id="epAddress" placeholder="e.g. Kariakoo, Street 12">
+
+      <!-- City + Country -->
+      <div class="pf-row">
+        <div>
+          <label>City</label>
+          <input type="text" id="epCity" placeholder="e.g. Dar es Salaam">
+        </div>
+        <div>
+          <label>Country</label>
+          <input type="text" id="epCountry" placeholder="e.g. Tanzania">
+        </div>
+      </div>
+
+      <!-- Bio -->
+      <label>About You <small>(optional)</small></label>
+      <textarea id="epBio" placeholder="Tell us a bit about yourself…" style="min-height:90px"></textarea>
+
+      <p id="epError" class="error-msg"></p>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="epSaveBtn">💾 Save Changes</button>
+        <button type="button" class="btn-secondary" onclick="closeEditProfileModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ============ SET PROGRESS STAGE MODAL ============ -->
+<div id="setStageModal" class="modal">
+  <div class="modal-content payment-modal-content">
+    <span class="close-modal" onclick="closeSetStageModal()">&times;</span>
+    <h2 class="pay-title">🎯 Set Shipment Stage</h2>
+    <p class="pay-sub" id="setStageOrderInfo">Order: —</p>
+
+    <!-- Current stage display -->
+    <div class="stage-current" id="stageCurrentBox">
+      <p class="stage-current-label">Current Stage</p>
+      <p class="stage-current-value" id="stageCurrentValue">—</p>
+    </div>
+
+    <!-- Mode toggle -->
+    <label class="pay-label">Action</label>
+    <div class="stage-mode-row">
+      <button type="button" class="stage-mode-btn active" data-mode="replace">
+        🎯 Set to stage
+      </button>
+      <button type="button" class="stage-mode-btn" data-mode="advance">
+        ⏭️ Advance by
+      </button>
+      <button type="button" class="stage-mode-btn" data-mode="reset">
+        🔄 Reset to start
+      </button>
+    </div>
+
+    <!-- Stage picker (for "replace") -->
+    <div id="stagePickerWrap">
+      <label class="pay-label">Choose Stage</label>
+      <div class="stage-picker" id="stagePicker">
+        <button type="button" class="stage-opt" data-stage="1">
+          <span class="stage-opt-num">1</span>
+          <span class="stage-opt-label">Order Confirmed</span>
+          <span class="stage-opt-place">China Warehouse</span>
+        </button>
+        <button type="button" class="stage-opt" data-stage="2">
+          <span class="stage-opt-num">2</span>
+          <span class="stage-opt-label">Packed &amp; Ready</span>
+          <span class="stage-opt-place">China Warehouse</span>
+        </button>
+        <button type="button" class="stage-opt" data-stage="3">
+          <span class="stage-opt-num">3</span>
+          <span class="stage-opt-label">In Transit (Safarini)</span>
+          <span class="stage-opt-place">China → Tanzania</span>
+        </button>
+        <button type="button" class="stage-opt" data-stage="4">
+          <span class="stage-opt-num">4</span>
+          <span class="stage-opt-label">Arrived Dar es Salaam</span>
+          <span class="stage-opt-place">Dar es Salaam</span>
+        </button>
+        <button type="button" class="stage-opt" data-stage="5">
+          <span class="stage-opt-num">5</span>
+          <span class="stage-opt-label">Delivered</span>
+          <span class="stage-opt-place">Customer Address</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Advance by N (for "advance") -->
+    <div id="stageAdvanceWrap" class="hidden">
+      <label class="pay-label">Advance by</label>
+      <div class="stage-advance-row">
+        <button type="button" class="stage-adv-btn" data-advance="1">+1</button>
+        <button type="button" class="stage-adv-btn" data-advance="2">+2</button>
+        <button type="button" class="stage-adv-btn" data-advance="3">+3</button>
+        <button type="button" class="stage-adv-btn" data-advance="4">+4</button>
+      </div>
+    </div>
+
+    <!-- Reset note (for "reset") -->
+    <div id="stageResetWrap" class="hidden">
+      <p class="profile-hint">
+        This will reset the shipment to <strong>Stage 1 (Order Confirmed · China Warehouse)</strong>.
+        All later stages will be marked as not-done and their timestamps cleared.
+      </p>
+    </div>
+
+    <p id="setStageError" class="error-msg"></p>
+
+    <div class="form-actions">
+      <button type="button" class="btn-primary" id="setStageApplyBtn">✅ Apply</button>
+      <button type="button" class="btn-secondary" onclick="closeSetStageModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<script type="module" src="main.js"></script>
+</body>
+</html>
