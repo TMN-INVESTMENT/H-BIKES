@@ -4269,3 +4269,485 @@ section {
   max-width: 720px;
   margin: 0 auto;
 }
+
+/* ============================================================
+   PRODUCT CARD — extended features
+   ============================================================ */
+
+/* Badge top-right of image */
+.product-media { position: relative; }
+.product-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  background: rgba(15, 23, 42, .8);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 700;
+  border-radius: 20px;
+  letter-spacing: .3px;
+  backdrop-filter: blur(4px);
+}
+
+/* Colour strip on product card */
+.colour-strip {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 4px 0 6px;
+}
+.colour-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1.5px #cbd5e1;
+  cursor: pointer;
+  padding: 0;
+  transition: .15s;
+}
+.colour-dot:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 0 2px #0ea5e9;
+}
+.colour-dot.selected {
+  box-shadow: 0 0 0 2px #0ea5e9;
+  transform: scale(1.1);
+}
+
+/* Description toggle — visible on ALL screens now */
+.btn-more-details {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 5px 11px;
+  background: #f1f5f9;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+  border-radius: 20px;
+  font-size: .76rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: .15s;
+  align-self: flex-start;
+}
+.btn-more-details:hover {
+  background: #e0f2fe;
+  border-color: #0ea5e9;
+}
+.btn-more-details .arrow {
+  font-size: .7rem;
+  line-height: 1;
+}
+
+/* Description collapse — works on every screen */
+.product-desc-wrap {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height .3s ease, opacity .2s ease, margin .2s;
+  margin: 0;
+}
+.product-desc-wrap.open {
+  max-height: 1200px;
+  opacity: 1;
+  margin: 6px 0;
+}
+
+.product-desc-wrap .product-desc {
+  font-size: .85rem;
+  color: #475569;
+  line-height: 1.6;
+  padding: 10px 12px;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 3px solid #0ea5e9;
+}
+.product-desc-wrap .product-desc p { margin: 0 0 6px; }
+.product-desc-wrap .product-desc p:last-child { margin-bottom: 0; }
+.product-desc-wrap .product-desc ul,
+.product-desc-wrap .product-desc ol {
+  margin: 6px 0 8px 20px;
+  padding-left: 4px;
+}
+.product-desc-wrap .product-desc li::marker {
+  color: #0ea5e9;
+  font-weight: 700;
+}
+
+/* External link */
+.product-ext-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #0ea5e9;
+  text-decoration: none;
+  align-self: flex-start;
+}
+.product-ext-link:hover {
+  color: #0369a1;
+  text-decoration: underline;
+}
+
+/* ---------- Admin form: colour and gallery previews ---------- */
+.colour-swatches-preview,
+.gallery-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.colour-swatches-preview:empty::before,
+.gallery-preview:empty::before {
+  content: "Preview appears here as you type…";
+  font-size: .78rem;
+  color: #cbd5e1;
+  font-style: italic;
+}
+.colour-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px 5px 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #334155;
+}
+.colour-chip .dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px #cbd5e1;
+}
+.colour-chip .x {
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 0 2px;
+  font-size: 1rem;
+  line-height: 1;
+}
+.colour-chip .x:hover { color: #dc2626; }
+
+.colour-add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.colour-add-row input {
+  flex: 1;
+}
+
+.gallery-preview img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* ============================================================
+   PRODUCT MODAL — colour picker + gallery
+   ============================================================ */
+.modal-gallery {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+.modal-gallery:empty { display: none; }
+.modal-thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: .15s;
+  background: #f1f5f9;
+}
+.modal-thumb:hover { border-color: #bae6fd; }
+.modal-thumb.active { border-color: #0ea5e9; }
+
+.modal-colour-wrap {
+  margin: 14px 0;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+}
+.modal-label {
+  display: block;
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+.modal-colours {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.modal-colour-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 8px;
+  background: #fff;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 20px;
+  font-size: .82rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  font-family: inherit;
+  transition: .15s;
+}
+.modal-colour-btn:hover {
+  border-color: #0ea5e9;
+}
+.modal-colour-btn.selected {
+  border-color: #0ea5e9;
+  background: #e0f2fe;
+  color: #0369a1;
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, .15);
+}
+.modal-colour-btn .dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px #cbd5e1;
+}
+.modal-colour-selected {
+  margin: 8px 0 0;
+  font-size: .78rem;
+  color: #0ea5e9;
+  font-weight: 600;
+}
+.modal-desc {
+  font-size: .9rem;
+  color: #475569;
+  line-height: 1.65;
+  margin: 12px 0;
+}
+.modal-ext-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 0 12px;
+  padding: 8px 14px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 10px;
+  color: #0369a1;
+  font-size: .85rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.modal-ext-link:hover {
+  background: #e0f2fe;
+  border-color: #0ea5e9;
+}
+
+.colour-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border-radius: 10px;
+  font-size: .7rem;
+  font-weight: 700;
+  margin-left: 6px;
+}
+
+/* ============================================================
+   SLIDESHOW — minimized height
+   ============================================================ */
+.slideshow-section {
+  position: relative;
+  width: 100%;
+  height: 340px;           /* ← was probably 500–600px */
+  overflow: hidden;
+}
+
+.slideshow-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity .6s ease;
+  display: flex;
+  align-items: center;
+}
+.slide.active { opacity: 1; }
+
+.slide img,
+.slide video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Dark gradient behind text for readability */
+.slide::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, .75) 0%,
+    rgba(15, 23, 42, .45) 45%,
+    rgba(15, 23, 42, 0) 100%
+  );
+  z-index: 1;
+}
+
+/* Slide text block */
+.slide-info {
+  position: relative;
+  z-index: 2;
+  padding: 24px 32px;
+  max-width: 520px;
+  color: #fff;
+}
+
+.slide-info h2 {
+  font-size: 1.6rem;
+  margin: 0 0 8px;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.slide-info .price-tag {
+  display: inline-block;
+  margin: 0 0 12px;
+  padding: 4px 12px;
+  background: rgba(14, 165, 233, .9);
+  color: #fff;
+  border-radius: 20px;
+  font-size: .85rem;
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+
+.slide-info .btn-order {
+  display: inline-block;
+  padding: .6rem 1.2rem;
+  background: #fff;
+  color: #0f172a;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: .85rem;
+  cursor: pointer;
+  transition: .15s;
+  font-family: inherit;
+}
+.slide-info .btn-order:hover {
+  background: #0ea5e9;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Arrows — smaller */
+.slide-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 23, 42, .55);
+  color: #fff;
+  font-size: .9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: .2s;
+  backdrop-filter: blur(4px);
+}
+.slide-nav:hover { background: rgba(14, 165, 233, .9); }
+.slide-nav.prev { left: 14px; }
+.slide-nav.next { right: 14px; }
+
+/* Dots */
+.slide-dots {
+  position: absolute;
+  bottom: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+.slide-dots .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .5);
+  cursor: pointer;
+  transition: .2s;
+}
+.slide-dots .dot.active {
+  background: #fff;
+  width: 22px;
+  border-radius: 6px;
+}
+
+/* ============================================================
+   RESPONSIVE — even smaller on tablets & phones
+   ============================================================ */
+@media (max-width: 900px) {
+  .slideshow-section { height: 280px; }
+  .slide-info h2 { font-size: 1.3rem; }
+  .slide-info { padding: 20px 24px; }
+}
+
+@media (max-width: 640px) {
+  .slideshow-section { height: 220px; }
+  .slide-info {
+    padding: 16px 18px;
+    max-width: 90%;
+  }
+  .slide-info h2 { font-size: 1.1rem; margin-bottom: 6px; }
+  .slide-info .price-tag { font-size: .75rem; padding: 3px 10px; }
+  .slide-info .btn-order {
+    padding: .5rem 1rem;
+    font-size: .78rem;
+  }
+  .slide-nav { width: 30px; height: 30px; font-size: .8rem; }
+  .slide-nav.prev { left: 8px; }
+  .slide-nav.next { right: 8px; }
+  .slide-dots { bottom: 8px; }
+  .slide-dots .dot { width: 6px; height: 6px; }
+  .slide-dots .dot.active { width: 16px; }
+}
+
+@media (max-width: 400px) {
+  .slideshow-section { height: 190px; }
+  .slide-info h2 { font-size: 1rem; }
+  .slide-info .price-tag { display: none; } /* or keep if you like */
+}

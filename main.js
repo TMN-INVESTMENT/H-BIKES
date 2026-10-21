@@ -1026,58 +1026,44 @@ window.resetProductForm = () => {
 
 window.editProduct = async (id) => {
   const snap = await getDoc(doc(db, "products", id));
-  if (!snap.exists()) {
-    toast("Product not found.", "error");
-    return;
-  }
+  if (!snap.exists()) { toast("Product not found.", "error"); return; }
   const d = snap.data();
   
-  // ---- Basic fields ----
   $("productId").value = id;
   $("productName").value = d.name || "";
-  $("productPrice").value = d.price || "";
+  $("productPrice").value = formatMoney(d.price) || "";
   $("productDesc").value = d.description || "";
   $("productActive").checked = d.active !== false;
   
-  // ---- Shipping ----
-  const shipType =
-    d.shippingType ||
-    (d.shippingFee && d.shippingFee !== "Free" ? "paid" : "free");
-  
-  const shipRadio = document.querySelector(
-    `input[name="shippingType"][value="${shipType}"]`
-  );
+  // Shipping
+  const shipType = d.shippingType || (d.shippingFee && d.shippingFee !== "Free" ? "paid" : "free");
+  const shipRadio = document.querySelector(`input[name="shippingType"][value="${shipType}"]`);
   if (shipRadio) shipRadio.checked = true;
-  
   $("shippingAmountWrap").classList.toggle("hidden", shipType !== "paid");
-  $("shippingAmount").value = shipType === "paid" ? (d.shippingFee || "") : "";
+  $("shippingAmount").value = shipType === "paid" ? (formatMoney(d.shippingFee) || "") : "";
   
-  // ---- Media ----
-  const mediaType =
-    d.mediaType ||
-    (d.video ? "video" : d.youtube ? "youtube" : "image");
-  
-  const mediaRadio = document.querySelector(
-    `input[name="mediaType"][value="${mediaType}"]`
-  );
+  // Media
+  const mediaType = d.mediaType || (d.video ? "video" : d.youtube ? "youtube" : "image");
+  const mediaRadio = document.querySelector(`input[name="mediaType"][value="${mediaType}"]`);
   if (mediaRadio) mediaRadio.checked = true;
-  
-  // Restore the correct URL in the new unified field
-  const mediaUrl =
-    d.mediaUrl ||
-    d.image ||
-    d.video ||
-    d.youtube ||
-    "";
-  $("productMediaUrl").value = mediaUrl;
-  
-  // Refresh label + YouTube preview
+  $("productMediaUrl").value = d.mediaUrl || d.image || d.video || d.youtube || "";
   if (typeof updateMediaField === "function") updateMediaField();
   
-  // ---- UI feedback ----
+  // Colours
+  $("productColours").value = (d.colours || []).join(", ");
+  renderColourPreview();
+  
+  // Gallery
+  $("productGallery").value = (d.gallery || []).join("\n");
+  renderGalleryPreview();
+  
+  // External link
+  $("productLink").value = d.link || "";
+  
+  // UI feedback
   $("adProductFormTitle").textContent = "✏️ Edit Product";
-  const submitBtn = $("productForm").querySelector(".btn-primary");
-  if (submitBtn) submitBtn.textContent = "💾 Update Product";
+  const btn = $("productForm").querySelector(".btn-primary");
+  if (btn) btn.textContent = "💾 Update Product";
   
   adGo("products");
   $("productForm").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1100,24 +1086,25 @@ window.toggleProductDetails = (productId, btn) => {
   if (!card) return;
   
   const desc = card.querySelector(".product-desc-wrap");
-  if (!desc) return;
-  
   const isOpen = desc.classList.toggle("open");
   
-  // Swap arrow + label
   const label = btn.querySelector(".label");
   const arrow = btn.querySelector(".arrow");
   if (label) label.textContent = isOpen ? "Hide Details" : "More Details";
   if (arrow) arrow.textContent = isOpen ? "▴" : "▾";
-  
-  // Recalculate any lazy stuff (optional)
-  card.classList.toggle("details-open", isOpen);
 };
 
 window.resetProductForm = () => {
   $("productForm").reset();
   $("productId").value = "";
   $("productActive").checked = true;
+  $("shippingAmountWrap").classList.add("hidden");
+  $("shippingAmount").value = "";
+  $("colourPreview").innerHTML = "";
+  $("galleryPreview").innerHTML = "";
+  $("adProductFormTitle").textContent = "➕ Add New Product";
+  const btn = $("productForm").querySelector(".btn-primary");
+  if (btn) btn.textContent = "💾 Save Product";
 };
 
 window.deleteProduct = async (id) => {
@@ -1730,11 +1717,13 @@ function loadPublicProducts() {
 
 function renderProduct(product) {
   const container = $("productContainer");
+  if (!container) return;
+  
   const card = document.createElement("div");
   card.className = "product-card";
   card.dataset.productId = product.id;
   
-  // ---- Media ----
+  // ---------- Main media ----------
   let mediaHtml = "";
   const type = product.mediaType || (product.video ? "video" : product.youtube ? "youtube" : "image");
   const url = product.mediaUrl || product.image || product.video || product.youtube;
@@ -1743,50 +1732,93 @@ function renderProduct(product) {
     const ytId = extractYoutubeId(url);
     mediaHtml = ytId ?
       `<iframe class="product-yt" src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe>` :
-      `<img src="" alt="${product.name}">`;
+      `<img src="" alt="${escapeHtml(product.name)}">`;
   } else if (type === "video") {
     mediaHtml = `<video src="${url}" autoplay muted loop playsinline></video>`;
   } else {
-    mediaHtml = `<img src="${url}" alt="${product.name}">`;
+    mediaHtml = `<img src="${url}" alt="${escapeHtml(product.name)}" loading="lazy">`;
   }
   
   const shipLabel = product.shippingType === "free" ?
     "🆓 Free Shipping" :
     product.shippingFee ? `🚚 Shipping: ${product.shippingFee}` : "";
   
+  const coloursList = (product.colours || [])
+    .map(c => String(c).trim())
+    .filter(Boolean);
+  
+  const hasLink = /^https?:\/\//i.test(product.link || "");
+  
+  // ---------- Card ----------
   card.innerHTML = `
     <div class="product-media">
       ${mediaHtml}
+      ${coloursList.length > 1 ? `
+        <span class="product-badge">${coloursList.length} colours</span>` : ""}
     </div>
 
     <div class="product-info">
-      <h3>${product.name}</h3>
+      <h3>${escapeHtml(product.name)}</h3>
 
       <p class="price">${product.price}</p>
       ${shipLabel ? `<p class="ship-tag">${shipLabel}</p>` : ""}
 
+      <!-- Colour swatch strip (public preview) -->
+      ${coloursList.length ? `
+        <div class="colour-strip" data-product-colour="${product.id}">
+          ${coloursList.map(c => `
+            <button type="button"
+                    class="colour-dot"
+                    data-colour="${escapeHtml(c)}"
+                    title="${escapeHtml(c)}"
+                    style="background:${colourToCss(c)}"></button>
+          `).join("")}
+        </div>` : ""}
+
       <!-- Collapsible description -->
-      <div class="product-desc-wrap">
-        <div class="product-desc formatted" id="desc-${product.id}">
-          ${formatDescription(product.description)}
+      <div class="product-desc-wrap" data-desc-id="${product.id}">
+        <div class="product-desc formatted">
+          ${formatDescription(product.description || "")}
         </div>
       </div>
 
-      <!-- Mobile-only toggle -->
-      <button
-        type="button"
-        class="btn-more-details"
-        onclick="toggleProductDetails('${product.id}', this)">
+      <!-- Toggle button (mobile-friendly, works everywhere) -->
+      <button type="button" class="btn-more-details"
+              onclick="toggleProductDetails('${product.id}', this)">
         <span class="label">More Details</span>
         <span class="arrow">▾</span>
       </button>
 
+      <!-- Actions -->
       <div class="product-actions">
-        <button class="btn-add-cart"   onclick='openProductModalById("${product.id}", "cart")'>🛒 Add to Cart</button>
-        <button class="btn-place-order" onclick='openProductModalById("${product.id}", "order")'>⚡ Place Order</button>
+        <button class="btn-add-cart"
+                onclick='openProductModalById("${product.id}", "cart")'>
+          🛒 Add to Cart
+        </button>
+        <button class="btn-place-order"
+                onclick='openProductModalById("${product.id}", "order")'>
+          ⚡ Place Order
+        </button>
       </div>
+
+      ${hasLink ? `
+        <a class="product-ext-link"
+           href="${product.link}"
+           target="_blank"
+           rel="noopener noreferrer">
+          🔗 More info
+        </a>` : ""}
     </div>
   `;
+  
+  // ---------- Colour strip: click → opens product modal with that colour pre-picked ----------
+  card.querySelectorAll(".colour-dot").forEach(dot => {
+    dot.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openProductModalById(product.id, "cart", dot.dataset.colour);
+    });
+  });
+  
   container.appendChild(card);
 }
 
@@ -1796,18 +1828,25 @@ onSnapshot(query(collection(db, "products"), where("active", "==", true)), (snap
   snap.forEach(d => _allPublicProducts.push({ id: d.id, ...d.data() }));
 });
 
-window.openProductModalById = (id) => {
+window.openProductModalById = (id, intent, colour) => {
   const p = _allPublicProducts.find(x => x.id === id);
   if (!p) return;
-  openProductModal(p);
+  openProductModal(p, intent, colour);
 };
 
-window.openProductModal = (product, intent) => {
+let _modalProduct    = null;
+let _modalColour     = "";
+let _modalGalleryIdx = 0;
+
+window.openProductModal = (product, intent, preselectColour) => {
+  _modalProduct = product;
+  _modalColour = "";
+  _modalGalleryIdx = 0;
+
+  // ---------- Basic fields ----------
   $("modalTitle").textContent = product.name;
   $("modalPrice").textContent = product.price;
-$("modalDesc").innerHTML = formatDescription(product.description);
-  
-  // Shipping tag
+
   const shipTag = $("modalShipTag");
   if (product.shippingType === "free") {
     shipTag.textContent = "🆓 Free Shipping";
@@ -1818,57 +1857,151 @@ $("modalDesc").innerHTML = formatDescription(product.description);
   } else {
     shipTag.style.display = "none";
   }
-  
+
+  // ---------- Description ----------
+  $("modalDesc").innerHTML = formatDescription(product.description || "");
+
+  // ---------- External link ----------
+  const ext = $("modalExtLink");
+  if (/^https?:\/\//i.test(product.link || "")) {
+    ext.href = product.link;
+    ext.classList.remove("hidden");
+  } else {
+    ext.classList.add("hidden");
+  }
+
+  // ---------- Gallery ----------
+  const gallery = [];
+  const mainImg = product.mediaUrl || product.image || "";
+  if (mainImg) gallery.push(mainImg);
+  (product.gallery || []).forEach(g => {
+    if (g && !gallery.includes(g)) gallery.push(g);
+  });
+
+  renderModalMedia(product, gallery, 0);
+
+  // ---------- Colours ----------
+  const colours = (product.colours || []).map(c => String(c).trim()).filter(Boolean);
+  const colourWrap = $("modalColourWrap");
+  const colourBox = $("modalColours");
+  colourBox.innerHTML = "";
+
+  if (colours.length > 0) {
+    colourWrap.classList.remove("hidden");
+    colours.forEach((c, i) => {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "modal-colour-btn";
+      btn.dataset.colour = c;
+      btn.innerHTML = `
+        <span class="dot" style="background:${colourToCss(c)}"></span>
+        <span class="name">${escapeHtml(c)}</span>
+      `;
+      btn.addEventListener("click", () => selectModalColour(c, btn));
+      colourBox.appendChild(btn);
+    });
+
+    // Preselect colour
+    const initial = preselectColour && colours.includes(preselectColour)
+      ? preselectColour
+      : colours[0];
+    const firstBtn = colourBox.querySelector(`[data-colour="${CSS.escape(initial)}"]`);
+    if (firstBtn) selectModalColour(initial, firstBtn);
+  } else {
+    colourWrap.classList.add("hidden");
+    $("modalColourSelected").textContent = "";
+    _modalColour = "";
+  }
+
+  // ---------- Reset qty ----------
+  setModalQty(1);
+
+  // ---------- Buttons ----------
+  $("modalAddCart").onclick = () => addToCart(product.id, _modalQty, _modalColour);
+  $("modalPlaceOrder").onclick = () => placeOrder(product.id, _modalQty, _modalColour);
+
+  // ---------- Highlight the tapped button ----------
+  $("modalAddCart").classList.toggle("pulse-highlight", intent === "cart");
+  $("modalPlaceOrder").classList.toggle("pulse-highlight", intent === "order");
+
+  $("productModal").classList.add("active");
+  document.body.style.overflow = "hidden";
+};
+
+// ---------- Gallery renderer ----------
+function renderModalMedia(product, gallery, idx) {
   const img = $("modalImage");
   const vid = $("modalVideo");
-  const mediaWrap = document.querySelector(".modal-media");
-  mediaWrap.querySelector(".modal-yt")?.remove();
-  
+  const wrap = document.querySelector(".modal-media");
+  wrap.querySelector(".modal-yt")?.remove();
+
   const type = product.mediaType || (product.video ? "video" : product.youtube ? "youtube" : "image");
-  const url = product.mediaUrl || product.image || product.video || product.youtube;
-  
+  const mainUrl = product.mediaUrl || product.image || product.video || product.youtube;
+
   img.style.display = "none";
   vid.style.display = "none";
   vid.pause();
   vid.src = "";
-  
-  if (type === "youtube") {
-    const ytId = extractYoutubeId(url);
-    if (ytId) {
-      const iframe = document.createElement("iframe");
-      iframe.className = "modal-yt";
-      iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
-      iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
-      iframe.allowFullscreen = true;
-      iframe.style.cssText = "width:100%;aspect-ratio:16/9;border:none;border-radius:8px;margin-bottom:1rem;";
-      mediaWrap.appendChild(iframe);
+
+  // Show main media only when gallery index is 0 and mediaType isn't plain image with gallery
+  if (idx === 0) {
+    if (type === "youtube") {
+      const ytId = extractYoutubeId(mainUrl);
+      if (ytId) {
+        const iframe = document.createElement("iframe");
+        iframe.className = "modal-yt";
+        iframe.src = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+        iframe.allow = "accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture";
+        iframe.allowFullscreen = true;
+        iframe.style.cssText =
+          "width:100%;aspect-ratio:16/9;border:none;border-radius:8px;margin-bottom:1rem;";
+        wrap.appendChild(iframe);
+      }
+    } else if (type === "video") {
+      vid.style.display = "block";
+      vid.src = mainUrl;
+      vid.play().catch(() => {});
+    } else {
+      img.style.display = "block";
+      img.src = mainUrl;
     }
-  } else if (type === "video") {
-    vid.style.display = "block";
-    vid.src = url;
-    vid.play().catch(() => {});
   } else {
     img.style.display = "block";
-    img.src = url;
+    img.src = gallery[idx] || mainUrl;
   }
-  
-  // Reset quantity each time modal opens
-  setModalQty(1);
-  
-  // Bind modal buttons — pass the current quantity
-  $("modalAddCart").onclick = () => addToCart(product.id, _modalQty);
-  $("modalPlaceOrder").onclick = () => placeOrder(product.id, _modalQty);
-  
-  // Highlight the button the user tapped on the card
-  const addBtn = $("modalAddCart");
-  const orderBtn = $("modalPlaceOrder");
-  addBtn.classList.remove("pulse-highlight");
-  orderBtn.classList.remove("pulse-highlight");
-  
-  if (intent === "cart") addBtn.classList.add("pulse-highlight");
-  if (intent === "order") orderBtn.classList.add("pulse-highlight");
-  
-  $("productModal").classList.add("active");
+
+  // ---------- Thumbnail strip ----------
+  const strip = $("modalGallery");
+  strip.innerHTML = "";
+  if (gallery.length > 1) {
+    gallery.forEach((url, i) => {
+      const t = document.createElement("img");
+      t.src = url;
+      t.className = "modal-thumb" + (i === idx ? " active" : "");
+      t.addEventListener("click", () => renderModalMedia(product, gallery, i));
+      strip.appendChild(t);
+    });
+  }
+}
+
+// ---------- Colour selection ----------
+function selectModalColour(colour, btn) {
+  _modalColour = colour;
+  document.querySelectorAll(".modal-colour-btn").forEach(b => {
+    b.classList.toggle("selected", b === btn);
+  });
+  $("modalColourSelected").textContent = "Selected: " + colour;
+}
+
+window.selectModalColour = selectModalColour;
+
+// ---------- Update closeProductModal ----------
+window.closeProductModal = () => {
+  $("productModal").classList.remove("active");
+  const vid = $("modalVideo");
+  if (vid) { vid.pause(); vid.src = ""; }
+  document.querySelectorAll(".modal-yt").forEach(el => el.remove());
+  document.body.style.overflow = "";
 };
 
 window.closeProductModal = () => {
@@ -2258,20 +2391,20 @@ function loadUserCart() {
     0;
   total += (price * (c.qty || 1)) + shipFee;
   
-  const div = document.createElement("div");
-  div.className = "ud-item";
-  div.innerHTML = `
-    <img src="${c.image || ''}" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:8px;">
-    <div class="ud-item-info">
-      <h5>${c.name}</h5>
-      <p>Qty: ${c.qty || 1}${shipFee ? ` · 🚚 +${c.shippingFee}` : " · 🆓 Free ship"}</p>
+  const colourLine = c.colour ? ` · 🎨 ${c.colour}` : "";
+
+div.innerHTML = `
+  <img src="${c.image || ''}" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:8px;">
+  <div class="ud-item-info">
+    <h5>${c.name}</h5>
+    <p>Qty: ${c.qty || 1}${colourLine}${shipFee ? ` · 🚚 +${c.shippingFee}` : " · 🆓 Free ship"}</p>
+  </div>
+  <div style="text-align:right">
+    <p class="ud-item-price">${c.price}</p>
+    <div class="ud-item-actions">
+      <button onclick="udRemoveFromCart('${d.id}')" title="Remove">&times;</button>
     </div>
-    <div style="text-align:right">
-      <p class="ud-item-price">${c.price}</p>
-      <div class="ud-item-actions">
-        <button onclick="udRemoveFromCart('${d.id}')" title="Remove">&times;</button>
-      </div>
-    </div>`;
+  </div>`;
   list.appendChild(div);
 });
       $("udCartTotal").textContent = "$" + total.toFixed(2);
@@ -3035,10 +3168,7 @@ function extractYoutubeId(url) {
 window.updateMediaField = updateMediaField;
 window.updateYoutubePreview = updateYoutubePreview;
 
-// ============================================================
-// ADD TO CART — adds item, then opens the user's Cart panel
-// ============================================================
-window.addToCart = async (productId, qty = 1) => {
+window.addToCart = async (productId, qty = 1, colour = "") => {
   qty = Math.max(1, Math.min(99, parseInt(qty) || 1));
 
   if (!currentUser) {
@@ -3051,18 +3181,19 @@ window.addToCart = async (productId, qty = 1) => {
   if (!product) { toast("Product not found.", "error"); return; }
 
   try {
+    // Match by product + colour (different colours are separate cart lines)
     const existingQ = query(
       collection(db, "carts"),
       where("userId", "==", currentUser.uid),
       where("productId", "==", productId)
     );
     const existingSnap = await getDocs(existingQ);
+    const sameColour = existingSnap.docs.find(d => (d.data().colour || "") === (colour || ""));
 
-    if (!existingSnap.empty) {
-      const existingDoc = existingSnap.docs[0];
-      const newQty = (existingDoc.data().qty || 1) + qty;
-      await updateDoc(doc(db, "carts", existingDoc.id), { qty: newQty });
-      toast(`🛒 Cart updated (Qty: ${newQty})`, "success");
+    if (sameColour) {
+      const newQty = (sameColour.data().qty || 1) + qty;
+      await updateDoc(doc(db, "carts", sameColour.id), { qty: newQty });
+      toast(`🛒 Cart updated (Qty: ${newQty}${colour ? " · " + colour : ""})`, "success");
     } else {
       await addDoc(collection(db, "carts"), {
         userId: currentUser.uid,
@@ -3073,19 +3204,16 @@ window.addToCart = async (productId, qty = 1) => {
         mediaType: product.mediaType || "image",
         shippingType: product.shippingType || "free",
         shippingFee: product.shippingFee || "Free",
+        colour: colour || "",
         qty,
         addedAt: serverTimestamp()
       });
-      toast(`🛒 Added ${qty} item${qty > 1 ? "s" : ""} to cart!`, "success");
+      toast(`🛒 Added ${qty} item${qty > 1 ? "s" : ""}${colour ? " · " + colour : ""}!`, "success");
     }
 
-    // Close the product modal
     $("productModal").classList.remove("active");
 
-    // ⬇️ NEW: open the user's Cart panel
-    
-      openUserCartPanel();
-
+    setTimeout(() => openUserCartPanel(), 400);
   } catch (err) {
     console.error("addToCart error:", err);
     toast("Failed to add to cart.", "error");
@@ -3095,7 +3223,7 @@ window.addToCart = async (productId, qty = 1) => {
 // ============================================================
 // PLACE ORDER — adds item, then opens Payment modal directly
 // ============================================================
-window.placeOrder = async (productId, qty = 1) => {
+window.placeOrder = async (productId, qty = 1, colour = "") => {
   qty = Math.max(1, Math.min(99, parseInt(qty) || 1));
 
   if (!currentUser) {
@@ -3114,11 +3242,11 @@ window.placeOrder = async (productId, qty = 1) => {
       where("productId", "==", productId)
     );
     const existingSnap = await getDocs(existingQ);
+    const sameColour = existingSnap.docs.find(d => (d.data().colour || "") === (colour || ""));
 
-    if (!existingSnap.empty) {
-      const existingDoc = existingSnap.docs[0];
-      const newQty = (existingDoc.data().qty || 1) + qty;
-      await updateDoc(doc(db, "carts", existingDoc.id), { qty: newQty });
+    if (sameColour) {
+      const newQty = (sameColour.data().qty || 1) + qty;
+      await updateDoc(doc(db, "carts", sameColour.id), { qty: newQty });
     } else {
       await addDoc(collection(db, "carts"), {
         userId: currentUser.uid,
@@ -3129,20 +3257,16 @@ window.placeOrder = async (productId, qty = 1) => {
         mediaType: product.mediaType || "image",
         shippingType: product.shippingType || "free",
         shippingFee: product.shippingFee || "Free",
+        colour: colour || "",
         qty,
         addedAt: serverTimestamp()
       });
     }
 
-    // Close product modal
     $("productModal").classList.remove("active");
     toast(`⚡ Proceeding to payment…`, "success");
 
-    // ⬇️ NEW: pull the whole cart and open the Payment modal
-    setTimeout(async () => {
-      await openPaymentFromCart();
-    }, 400);
-
+    setTimeout(async () => { await openPaymentFromCart(); }, 400);
   } catch (err) {
     console.error("placeOrder error:", err);
     toast("Failed to place order.", "error");
@@ -3571,22 +3695,22 @@ window.submitPayment = async () => {
   // Compute totals
   let subtotal = 0, shipTotal = 0;
   const items = _payPendingOrder.map(c => {
-    const price = parseFloat(String(c.price).replace(/[^0-9.]/g, "")) || 0;
-    const ship = c.shippingType === "paid"
-      ? (parseFloat(String(c.shippingFee).replace(/[^0-9.]/g, "")) || 0) : 0;
-    const qty = c.qty || 1;
-    subtotal += price * qty;
-    shipTotal += ship;
-    return {
-      productId: c.productId,
-      name: c.name,
-      price: c.price,
-      qty,
-      image: c.image || "",
-      shippingFee: c.shippingFee || "Free",
-      shippingType: c.shippingType || "free"
-    };
-  });
+  const price = parseMoney(c.price);
+  const ship = c.shippingType === "paid" ? parseMoney(c.shippingFee) : 0;
+  const qty = c.qty || 1;
+  subtotal += price * qty;
+  shipTotal += ship;
+  return {
+    productId: c.productId,
+    name: c.name,
+    price: c.price,
+    qty,
+    image: c.image || "",
+    colour: c.colour || "", // ← NEW
+    shippingFee: c.shippingFee || "Free",
+    shippingType: c.shippingType || "free"
+  };
+});
 
   const reference = "ORD-" + Date.now().toString(36).toUpperCase();
 
@@ -3795,13 +3919,13 @@ function renderOrderCard(o, isPending) {
   const badgeText  = o.status === "approved" ? "✅ Approved" :
                      o.status === "rejected" ? "❌ Rejected" : "⏳ Pending";
   const itemsHtml = (o.items || []).map(it => `
-    <div class="bill-item">
-      ${it.image ? `<img src="${it.image}" alt="">` : ""}
-      <div class="bill-item-info">
-        <p><strong>${it.name}</strong></p>
-        <p>Qty: ${it.qty} · ${it.price}</p>
-      </div>
-    </div>`).join("");
+  <div class="bill-item">
+    ${it.image ? `<img src="${it.image}" alt="">` : ""}
+    <div class="bill-item-info">
+      <p><strong>${it.name}</strong>${it.colour ? ` <span class="colour-tag">${it.colour}</span>` : ""}</p>
+      <p>Qty: ${it.qty} · ${it.price}</p>
+    </div>
+  </div>`).join("");
 
   const div = document.createElement("div");
   div.className = "ud-item bill-card";
@@ -4916,3 +5040,196 @@ aboutForm.addEventListener("submit", async (e) => {
     toast("Save failed.", "error");
   }
 });
+
+// ============================================================
+// COLOUR NAME → CSS VALUE (for swatches)
+// ============================================================
+function colourToCss(name) {
+  const c = String(name).trim().toLowerCase();
+  const map = {
+    red: "#ef4444",
+    black: "#111827",
+    blue: "#3b82f6",
+    navy: "#1e3a8a",
+    sky: "#0ea5e9",
+    green: "#22c55e",
+    darkgreen: "#166534",
+    lime: "#84cc16",
+    yellow: "#facc15",
+    orange: "#f97316",
+    gold: "#d4a017",
+    silver: "#cbd5e1",
+    gray: "#9ca3af",
+    grey: "#9ca3af",
+    white: "#f8fafc",
+    pink: "#ec4899",
+    purple: "#8b5cf6",
+    violet: "#7c3aed",
+    brown: "#92400e",
+    maroon: "#7f1d1d",
+    beige: "#f5f5dc",
+    cream: "#fef3c7",
+    cyan: "#06b6d4",
+    teal: "#14b8a6",
+    magenta: "#d946ef",
+    bronze: "#b45309",
+    chrome: "#d1d5db",
+    matte: "#374151",
+    carbon: "#1f2937"
+  };
+  if (map[c]) return map[c];
+  // Multi-word — try first word
+  const first = c.split(/\s+/)[0];
+  if (map[first]) return map[first];
+  // Fallback to name itself (browser will try)
+  return c;
+}
+
+window.colourToCss = colourToCss;
+
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  const id = $("productId").value;
+  const shippingType = document.querySelector('input[name="shippingType"]:checked').value;
+  const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
+  const mediaUrl = $("productMediaUrl").value.trim();
+  
+  if (shippingType === "paid" && !$("shippingAmount").value.trim()) {
+    toast("Enter a shipping amount.", "warning");
+    $("shippingAmount").focus();
+    return;
+  }
+  if (mediaType === "youtube" && !extractYoutubeId(mediaUrl)) {
+    toast("Invalid YouTube URL.", "error");
+    return;
+  }
+  
+  // ---------- Colours ----------
+  const colours = ($("productColours").value || "")
+    .split(",")
+    .map(c => c.trim())
+    .filter(Boolean);
+  
+  // ---------- Gallery (one URL per line) ----------
+  const gallery = ($("productGallery").value || "")
+    .split(/\r?\n/)
+    .map(u => u.trim())
+    .filter(u => u && /^https?:\/\//i.test(u));
+  
+  // ---------- External link ----------
+  const link = ($("productLink").value || "").trim();
+  
+  const data = {
+    name: $("productName").value.trim(),
+    price: formatMoney($("productPrice").value),
+    shippingType,
+    shippingFee: shippingType === "free" ? "Free" : formatMoney($("shippingAmount").value),
+    mediaType,
+    mediaUrl,
+    image: mediaType === "image" ? mediaUrl : "",
+    video: mediaType === "video" ? mediaUrl : "",
+    youtube: mediaType === "youtube" ? mediaUrl : "",
+    colours,
+    gallery,
+    link,
+    description: $("productDesc").value,
+    active: $("productActive").checked
+  };
+  
+  try {
+    if (id) {
+      await updateDoc(doc(db, "products", id), data);
+      toast("Product updated.", "success");
+    } else {
+      await addDoc(collection(db, "products"), data);
+      toast("Product added.", "success");
+    }
+    resetProductForm();
+  } catch (err) {
+    console.error(err);
+    toast("Failed to save product.", "error");
+  }
+});
+
+// ============================================================
+// COLOUR PREVIEW (admin form)
+// ============================================================
+function renderColourPreview() {
+  const box = $("colourPreview");
+  if (!box) return;
+
+  const colours = ($("productColours").value || "")
+    .split(",")
+    .map(c => c.trim())
+    .filter(Boolean);
+
+  box.innerHTML = "";
+  colours.forEach((c, i) => {
+    const chip = document.createElement("span");
+    chip.className = "colour-chip";
+    chip.innerHTML = `
+      <span class="dot" style="background:${colourToCss(c)}"></span>
+      ${escapeHtml(c)}
+      <button type="button" class="x" title="Remove">×</button>
+    `;
+    chip.querySelector(".x").addEventListener("click", () => {
+      colours.splice(i, 1);
+      $("productColours").value = colours.join(", ");
+      renderColourPreview();
+    });
+    box.appendChild(chip);
+  });
+}
+
+// ============================================================
+// GALLERY PREVIEW (admin form)
+// ============================================================
+function renderGalleryPreview() {
+  const box = $("galleryPreview");
+  if (!box) return;
+  const urls = ($("productGallery").value || "")
+    .split(/\r?\n/)
+    .map(u => u.trim())
+    .filter(u => u && /^https?:\/\//i.test(u));
+
+  box.innerHTML = "";
+  urls.slice(0, 12).forEach(u => {
+    const img = document.createElement("img");
+    img.src = u;
+    img.alt = "";
+    img.loading = "lazy";
+    box.appendChild(img);
+  });
+}
+
+// ============================================================
+// WIRE COLOUR / GALLERY INPUTS
+// ============================================================
+(function wireProductExtras() {
+  const cIn = $("productColours");
+  if (cIn) cIn.addEventListener("input", renderColourPreview);
+
+  const gIn = $("productGallery");
+  if (gIn) gIn.addEventListener("input", renderGalleryPreview);
+
+  const addBtn = $("colourQuickAddBtn");
+  const addInput = $("colourQuickAdd");
+  if (addBtn && addInput) {
+    addBtn.addEventListener("click", () => {
+      const val = addInput.value.trim();
+      if (!val) return;
+      const cur = ($("productColours").value || "").split(",").map(s => s.trim()).filter(Boolean);
+      if (!cur.includes(val)) cur.push(val);
+      $("productColours").value = cur.join(", ");
+      addInput.value = "";
+      renderColourPreview();
+    });
+    addInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        addBtn.click();
+      }
+    });
+  }
+})();

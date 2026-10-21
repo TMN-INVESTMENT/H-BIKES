@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>H-BIKES</title>
+<title>Tz BIKES</title>
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
@@ -16,7 +16,7 @@
 <!-- NAVBAR -->
 <nav class="navbar">
   <div class="nav-container">
-    <h1 class="logo">H-BIKES</h1>
+    <h1 class="logo">Tz BIKES</h1>
     <ul class="nav-links">
   <li><a href="#home">Home</a></li>
   <li><a href="#products">Products</a></li>
@@ -142,7 +142,7 @@
 
     <!-- BRAND -->
     <div class="footer-col footer-brand">
-      <h3 class="footer-logo" id="footerBrandName">H-BIKES</h3>
+      <h3 class="footer-logo" id="footerBrandName">Tz BIKES</h3>
       <p class="footer-tagline" id="footerTagline">
         Quality products shipped from China to Tanzania — fast and reliable.
       </p>
@@ -197,7 +197,7 @@
   <!-- BOTTOM BAR -->
   <div class="footer-bottom">
     <p class="footer-copy" id="footerCopyright">
-      © <span id="footerYear"></span> H-BIKES. All rights reserved.
+      © <span id="footerYear"></span> Tz BIKES. All rights reserved.
     </p>
     <p class="footer-credit" id="footerCredit">
       Made with ❤️ in Dar es Salaam
@@ -207,35 +207,52 @@
 </section>
 </div>
 
-<!-- PRODUCT MODAL (shared for slide details and product details) -->
 <div id="productModal" class="modal">
   <div class="modal-content">
     <span class="close-modal" onclick="closeProductModal()">&times;</span>
+    
     <div class="modal-media">
       <img id="modalImage" src="" alt="">
       <video id="modalVideo" controls style="display:none;"></video>
+      
+      <!-- Thumbnail gallery -->
+      <div id="modalGallery" class="modal-gallery"></div>
     </div>
-<div class="modal-info">
-  <h2 id="modalTitle"></h2>
-  <p id="modalPrice" class="price-tag"></p>
-  <p id="modalShipTag" class="ship-tag"></p>
-  <p id="modalDesc"></p>
-  
-  <!-- Quantity selector -->
-  <div class="qty-wrap">
-    <span class="qty-label">Quantity</span>
-    <div class="qty-stepper">
-      <button type="button" class="qty-btn" id="qtyMinus" aria-label="Decrease">−</button>
-      <input type="number" id="qtyInput" value="1" min="1" max="99" readonly>
-      <button type="button" class="qty-btn" id="qtyPlus" aria-label="Increase">+</button>
+    
+    <div class="modal-info">
+      <h2 id="modalTitle"></h2>
+      <p id="modalPrice" class="price-tag"></p>
+      <p id="modalShipTag" class="ship-tag"></p>
+      
+      <!-- Colour picker -->
+      <div id="modalColourWrap" class="modal-colour-wrap hidden">
+        <label class="modal-label">Choose Colour</label>
+        <div id="modalColours" class="modal-colours"></div>
+        <p id="modalColourSelected" class="modal-colour-selected"></p>
+      </div>
+      
+      <div id="modalDesc" class="modal-desc formatted"></div>
+      
+      <!-- External link -->
+      <a id="modalExtLink" class="modal-ext-link hidden" target="_blank" rel="noopener noreferrer">
+        🔗 More info
+      </a>
+      
+      <!-- Quantity -->
+      <div class="qty-wrap">
+        <span class="qty-label">Quantity</span>
+        <div class="qty-stepper">
+          <button type="button" class="qty-btn" id="qtyMinus" aria-label="Decrease">−</button>
+          <input type="number" id="qtyInput" value="1" min="1" max="99" readonly>
+          <button type="button" class="qty-btn" id="qtyPlus" aria-label="Increase">+</button>
+        </div>
+      </div>
+      
+      <div class="modal-actions">
+        <button class="btn-add-cart" id="modalAddCart">🛒 Add to Cart</button>
+        <button class="btn-place-order" id="modalPlaceOrder">⚡ Place Order</button>
+      </div>
     </div>
-  </div>
-  
-  <div class="modal-actions">
-    <button class="btn-add-cart" id="modalAddCart">🛒 Add to Cart</button>
-    <button class="btn-place-order" id="modalPlaceOrder">⚡ Place Order</button>
-  </div>
-</div>
   </div>
 </div>
 
@@ -524,7 +541,7 @@
           <p class="ud-empty">Your cart is empty.</p>
         </div>
         <div class="ud-cart-total" id="udCartTotalWrap" style="display:none">
-          <p>Total: <strong id="udCartTotal">$0</strong></p>
+          <p>Total: <strong id="udCartTotal">Tsh0</strong></p>
           <button class="btn-primary" onclick="udCheckout()">Checkout</button>
         </div>
       </div>
@@ -649,13 +666,13 @@
     <h3>🦶 Footer Settings</h3>
     <form id="footerSettingsForm" class="admin-form">
       <label>Brand Name</label>
-      <input type="text" id="ftBrandName" placeholder="e.g. H-BIKES">
+      <input type="text" id="ftBrandName" placeholder="e.g. Tz BIKES">
 
       <label>Tagline</label>
       <textarea id="ftTagline" placeholder="Short description under the logo" style="min-height:80px"></textarea>
 
       <label>Copyright Text <small>(year is added automatically)</small></label>
-      <input type="text" id="ftCopyright" placeholder="e.g. H-BIKES. All rights reserved.">
+      <input type="text" id="ftCopyright" placeholder="e.g. Tz BIKES. All rights reserved.">
 
       <label>Bottom Credit Line</label>
       <input type="text" id="ftCredit" placeholder="e.g. Made with ❤️ in Dar es Salaam">
@@ -715,7 +732,7 @@
       <input type="text" id="payNameInput" placeholder="e.g. CRDB Bank" required>
 
       <label>Account Name (Full Name)</label>
-      <input type="text" id="payAccountNameInput" placeholder="e.g. H-BIKES Ltd" required>
+      <input type="text" id="payAccountNameInput" placeholder="e.g. Tz BIKES Ltd" required>
 
       <label>Account Number</label>
       <input type="text" id="payAccountNumberInput" placeholder="e.g. 0150123456789">
@@ -775,96 +792,105 @@
 <section class="ud-panel" id="ad-products">
   <div class="ud-card">
     <h3 id="adProductFormTitle">➕ Add New Product</h3>
-    <form id="productForm" class="admin-form">
-      <input type="hidden" id="productId">
-      
-      <label>Product Name</label>
-      <input type="text" id="productName" placeholder="e.g. iPhone 15 Pro" required>
-      
-<!-- ============ PRICE ============ -->
-<label>Price <small>(Tanzanian Shillings)</small></label>
-<input
-  type="text"
-  id="productPrice"
-  data-money
-  inputmode="numeric"
-  autocomplete="off"
-  placeholder="e.g. 50,000"
-  required>
+   <form id="productForm" class="admin-form">
+  <input type="hidden" id="productId">
 
-<!-- ============ SHIPPING FEE ============ -->
-<label>Shipping Fee</label>
-<div class="radio-row">
-  <label class="radio-opt">
-    <input type="radio" name="shippingType" value="free" checked>
-    <span>🆓 Free Shipping</span>
+  <!-- ===== BASIC ===== -->
+  <label>Product Name</label>
+  <input type="text" id="productName" placeholder="e.g. Honda CG 125" required>
+
+  <label>Price <small>(Tanzanian Shillings)</small></label>
+  <input type="text" id="productPrice" data-money inputmode="numeric"
+         autocomplete="off" placeholder="e.g. 3,200,000" required>
+
+  <!-- ===== SHIPPING ===== -->
+  <label>Shipping Fee</label>
+  <div class="radio-row">
+    <label class="radio-opt">
+      <input type="radio" name="shippingType" value="free" checked>
+      <span>🆓 Free Shipping</span>
+    </label>
+    <label class="radio-opt">
+      <input type="radio" name="shippingType" value="paid">
+      <span>🚚 Add Shipping Fee</span>
+    </label>
+  </div>
+
+  <div id="shippingAmountWrap" class="hidden">
+    <label>Shipping Amount</label>
+    <input type="text" id="shippingAmount" data-money inputmode="numeric"
+           autocomplete="off" placeholder="e.g. 150,000">
+  </div>
+
+  <!-- ===== COLOURS ===== -->
+  <label>Available Colours <small>(comma-separated, admin fills all)</small></label>
+  <input type="text" id="productColours"
+         placeholder="e.g. Red, Black, Blue, Green, Silver, White, Yellow">
+
+  <div class="colour-swatches-preview" id="colourPreview"></div>
+
+  <div class="colour-add-row">
+    <input type="text" id="colourQuickAdd" placeholder="Add a colour…">
+    <button type="button" class="btn-secondary" id="colourQuickAddBtn">＋ Add</button>
+  </div>
+
+  <!-- ===== MAIN MEDIA ===== -->
+  <label>Media Type</label>
+  <div class="radio-row">
+    <label class="radio-opt">
+      <input type="radio" name="mediaType" value="image" checked>
+      <span>🖼️ Image</span>
+    </label>
+    <label class="radio-opt">
+      <input type="radio" name="mediaType" value="video">
+      <span>🎥 Video</span>
+    </label>
+    <label class="radio-opt">
+      <input type="radio" name="mediaType" value="youtube">
+      <span>▶️ YouTube</span>
+    </label>
+  </div>
+
+  <label id="mediaUrlLabel">Main Image URL</label>
+  <input type="text" id="productMediaUrl" placeholder="https://…" required>
+
+  <div id="youtubePreviewWrap" class="hidden yt-preview">
+    <p class="yt-hint">YouTube preview:</p>
+    <iframe id="youtubePreview" src="" allowfullscreen></iframe>
+  </div>
+
+  <!-- ===== GALLERY (multiple images) ===== -->
+  <label>Extra Images <small>(one URL per line — optional)</small></label>
+  <textarea id="productGallery"
+            placeholder="https://img1.jpg&#10;https://img2.jpg&#10;https://img3.jpg"
+            style="min-height:90px"></textarea>
+  <div id="galleryPreview" class="gallery-preview"></div>
+
+  <!-- ===== DESCRIPTION ===== -->
+  <label>Description</label>
+  <textarea id="productDesc" placeholder="Full product description…"
+            style="min-height:160px"></textarea>
+  <div class="desc-preview-wrap">
+    <p class="desc-preview-label">Live preview:</p>
+    <div id="productDescPreview" class="desc-preview formatted"></div>
+  </div>
+
+  <!-- ===== OPTIONAL LINK ===== -->
+  <label>External Link <small>(optional — YouTube demo, spec sheet, etc.)</small></label>
+  <input type="text" id="productLink"
+         placeholder="e.g. https://youtube.com/watch?v=…">
+
+  <!-- ===== ACTIVE ===== -->
+  <label class="switch-row">
+    <input type="checkbox" id="productActive" checked>
+    <span>Active (visible on site)</span>
   </label>
-  <label class="radio-opt">
-    <input type="radio" name="shippingType" value="paid">
-    <span>🚚 Add Shipping Fee</span>
-  </label>
-</div>
 
-<div id="shippingAmountWrap" class="hidden">
-  <label>Shipping Amount <small>(Tanzanian Shillings)</small></label>
-  <input
-    type="text"
-    id="shippingAmount"
-    data-money
-    inputmode="numeric"
-    autocomplete="off"
-    placeholder="e.g. 25,000">
-</div>
-      
-      <div id="shippingAmountWrap" class="hidden">
-        <label>Shipping Amount</label>
-        <input type="text" id="shippingAmount" placeholder="e.g. 25 or $25">
-      </div>
-      
-      <label>Media Type</label>
-      <div class="radio-row">
-        <label class="radio-opt">
-          <input type="radio" name="mediaType" value="image" checked>
-          <span>🖼️ Image</span>
-        </label>
-        <label class="radio-opt">
-          <input type="radio" name="mediaType" value="video">
-          <span>🎥 Video</span>
-        </label>
-        <label class="radio-opt">
-          <input type="radio" name="mediaType" value="youtube">
-          <span>▶️ YouTube</span>
-        </label>
-      </div>
-      
-      <label id="mediaUrlLabel">Image URL</label>
-      <input type="text" id="productMediaUrl" placeholder="https://..." required>
-      
-      <div id="youtubePreviewWrap" class="hidden yt-preview">
-        <p class="yt-hint">YouTube preview:</p>
-        <iframe id="youtubePreview" src="" allowfullscreen></iframe>
-      </div>
-      
-<label>Description</label>
-<textarea id="productDesc" placeholder="Short product description…
-
-Tip: new lines become paragraphs. Start lines with - for bullets." required></textarea>
-
-<div class="desc-preview-wrap">
-  <p class="desc-preview-label">Live preview:</p>
-  <div id="productDescPreview" class="desc-preview formatted"></div>
-</div>
-      
-      <label class="switch-row">
-        <input type="checkbox" id="productActive" checked>
-        <span>Active (visible on site)</span>
-      </label>
-      
-      <div class="form-actions">
-        <button type="submit" class="btn-primary">💾 Save Product</button>
-        <button type="button" onclick="resetProductForm()" class="btn-secondary">Cancel</button>
-      </div>
-    </form>
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">💾 Save Product</button>
+    <button type="button" onclick="resetProductForm()" class="btn-secondary">Cancel</button>
+  </div>
+</form>
   </div>
   
   <div class="ud-card">
@@ -883,7 +909,7 @@ Tip: new lines become paragraphs. Start lines with - for bullets." required></te
           <input type="text" id="slideTitle" placeholder="e.g. Summer Sale" required>
 
           <label>Price Tag</label>
-          <input type="text" id="slidePrice" placeholder="e.g. From $99" required>
+          <input type="text" id="slidePrice" placeholder="e.g. From Tsh99" required>
 
           <label>Image URL</label>
           <input type="text" id="slideImage" placeholder="https://..." required>
@@ -1110,7 +1136,7 @@ Tip:
   <div class="modal-content payment-modal-content">
     <span class="close-modal" onclick="closePaymentModal()">&times;</span>
     <h2 class="pay-title">💳 Complete Payment</h2>
-    <p class="pay-sub">Order Total: <strong id="payGrandTotal">$0</strong></p>
+    <p class="pay-sub">Order Total: <strong id="payGrandTotal">Tsh0</strong></p>
 
     <!-- STEP 1: choose method -->
     <div id="payStep1">
