@@ -3096,10 +3096,6 @@ const waMessage = encodeURIComponent(
 );
 
 const waLink = `https://wa.me/${BUSINESS_WHATSAPP}?text=${waMessage}`;
-
-      const waLink = waPhone ?
-        `https://wa.me/${waPhone}?text=${waMessage}` :
-        `https://wa.me/?text=${waMessage}`;
       
       const div = document.createElement("div");
       div.className = "ud-item bill-card";
