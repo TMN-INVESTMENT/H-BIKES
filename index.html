@@ -53,15 +53,44 @@
     <div class="slide-dots" id="slideDots"></div>
   </section>
 
-  <!-- PRODUCTS -->
-  <section id="products" class="products-section">
-    <h2 class="section-title">Our Products</h2>
+<!-- PRODUCTS -->
+<section id="products" class="products-section">
+  <h2 class="section-title">Our Products</h2>
+
+  <!-- ===== SEARCH BAR ===== -->
+  <div class="product-search-wrap">
+    <div class="product-search-box">
+      <span class="search-icon">🔍</span>
+      <input
+        type="search"
+        id="productSearchInput"
+        class="product-search-input"
+        placeholder="Search by name, brand, colour…"
+        autocomplete="off"
+        aria-label="Search products">
+      <button type="button" id="productSearchClear" class="search-clear hidden" aria-label="Clear search">
+        &times;
+      </button>
+    </div>
+    <div id="productSearchMeta" class="product-search-meta"></div>
+  </div>
+
+  <!-- ===== SEARCH RESULTS ===== -->
+  <div id="searchResultsWrap" class="hidden">
+    <div id="searchResults" class="product-grid"></div>
+    <p id="searchEmpty" class="ud-empty hidden">No products match your search.</p>
+    <p id="searchLoading" class="ud-empty hidden">Searching…</p>
+  </div>
+
+  <!-- ===== NORMAL VIEW ===== -->
+  <div id="normalProductsView">
     <div class="view-toggle">
       <button id="gridViewBtn" class="active">Grid</button>
       <button id="listViewBtn">List</button>
     </div>
     <div id="productContainer" class="product-grid"></div>
-  </section>
+  </div>
+</section>
 
 <!-- ABOUT -->
 <section id="about" class="about-section">

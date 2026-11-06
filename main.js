@@ -43,6 +43,7 @@ let currentView = "grid";
 const $ = (id) => document.getElementById(id);
 const show = (el) => el?.classList.remove("hidden");
 const hide = (el) => el?.classList.add("hidden");
+const _searchState = { query: "", debounceId: null, reqToken: 0 };
 
 function hideAllViews() {
   ["mainSite", "authView", "userDashboard", "adminDashboard", "superDashboard"]
@@ -2015,12 +2016,17 @@ window.closeProductModal = () => {
 $("gridViewBtn")?.addEventListener("click", () => {
   currentView = "grid";
   $("productContainer").className = "product-grid";
+  const sr = document.getElementById("searchResults");
+  if (sr) sr.className = "product-grid";
   $("gridViewBtn").classList.add("active");
   $("listViewBtn").classList.remove("active");
 });
+
 $("listViewBtn")?.addEventListener("click", () => {
   currentView = "list";
   $("productContainer").className = "product-list";
+  const sr = document.getElementById("searchResults");
+  if (sr) sr.className = "product-list";
   $("listViewBtn").classList.add("active");
   $("gridViewBtn").classList.remove("active");
 });
@@ -2255,10 +2261,11 @@ window.toggleAboutDetails = toggleAboutDetails;
 // ============================================================
 // INIT
 // ============================================================
+wireProductSearch(); // ← add this FIRST
 loadPublicProducts();
 loadSlides();
 loadAboutContact();
-loadContacts();          // ← this line
+loadContacts();
 showMainSite();
 // ============================================================
 // PASSWORD EYE TOGGLE
@@ -2407,7 +2414,7 @@ div.innerHTML = `
   </div>`;
   list.appendChild(div);
 });
-      $("udCartTotal").textContent = "$" + total.toFixed(2);
+      $("udCartTotal").textContent = formatMoney(total);
       $("udCartTotalWrap").style.display = "flex";
     }
 
@@ -2476,9 +2483,9 @@ function loadUserBills() {
         </div>
         <div class="bill-items">${itemsHtml}</div>
         <div class="bill-total">
-          <span>Total</span>
-          <strong>$${(o.grandTotal || 0).toFixed(2)}</strong>
-        </div>
+  <span>Total</span>
+  <strong>${formatMoney(o.grandTotal || 0)}</strong>
+</div>
         <div class="bill-actions">
           ${o.status === "approved" ? `
             <button class="btn-primary" onclick="showReceipt('${o.id}')">🧾 Receipt</button>
@@ -2502,13 +2509,16 @@ window.showReceipt = async (orderId) => {
   
   const userBlock = await buildUserDetailsBlock(o);
   
-  const rows = (o.items || []).map(it => `
-    <tr>
-      <td>${it.image ? `<img src="${it.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px;">` : ""}${it.name}</td>
-      <td>${it.qty}</td>
-      <td>${it.price}</td>
-      <td>$${((parseFloat(String(it.price).replace(/[^0-9.]/g,"")) || 0) * it.qty).toFixed(2)}</td>
-    </tr>`).join("");
+  const rows = (o.items || []).map(it => {
+  const lineTotal = parseMoney(it.price) * (it.qty || 1);
+  return `
+  <tr>
+    <td>${it.image ? `<img src="${it.image}" style="width:40px;height:40px;object-fit:cover;border-radius:6px;vertical-align:middle;margin-right:8px;">` : ""}${it.name}</td>
+    <td>${it.qty}</td>
+    <td>${it.price}</td>
+    <td>${formatMoney(lineTotal)}</td>
+  </tr>`;
+}).join("");
   
   openDocWindow("Receipt — " + (o.reference || orderId.slice(0, 8)), `
     <div class="doc-wrap">
@@ -2530,12 +2540,12 @@ window.showReceipt = async (orderId) => {
         <tbody>${rows}</tbody>
       </table>
 
-      <div class="doc-totals">
-        <p>Subtotal: $${(o.subtotal || 0).toFixed(2)}</p>
-        <p>Shipping: $${(o.shipTotal || 0).toFixed(2)}</p>
-        <h3>Total: $${(o.grandTotal || 0).toFixed(2)}</h3>
-        <span class="paid-stamp">✅ PAID</span>
-      </div>
+    <div class="doc-totals">
+  <p>Subtotal: ${formatMoney(o.subtotal || 0)}</p>
+  <p>Shipping: ${formatMoney(o.shipTotal || 0)}</p>
+  <h3>Total: ${formatMoney(o.grandTotal || 0)}</h3>
+  <span class="paid-stamp">✅ PAID</span>
+</div>
 
       <div class="doc-foot">
         <p>Approved on ${o.approvedAt?.toDate ? o.approvedAt.toDate().toLocaleString() : ""}</p>
@@ -2553,13 +2563,16 @@ window.showInvoice = async (orderId) => {
   
   const userBlock = await buildUserDetailsBlock(o);
   
-  const rows = (o.items || []).map(it => `
+  const rows = (o.items || []).map(it => {
+  const lineTotal = parseMoney(it.price) * (it.qty || 1);
+  return `
     <tr>
       <td>${it.name}</td>
       <td>${it.qty}</td>
       <td>${it.price}</td>
-      <td>$${((parseFloat(String(it.price).replace(/[^0-9.]/g,"")) || 0) * it.qty).toFixed(2)}</td>
-    </tr>`).join("");
+      <td>${formatMoney(lineTotal)}</td>
+    </tr>`;
+}).join("");
   
   openDocWindow("Invoice — " + (o.reference || orderId.slice(0, 8)), `
     <div class="doc-wrap">
@@ -2576,10 +2589,10 @@ window.showInvoice = async (orderId) => {
         <tbody>${rows}</tbody>
       </table>
 
-      <div class="doc-totals">
-        <p>Subtotal: $${(o.subtotal || 0).toFixed(2)}</p>
-        <p>Shipping: $${(o.shipTotal || 0).toFixed(2)}</p>
-        <h3>Total Due: $${(o.grandTotal || 0).toFixed(2)}</h3>
+       <div class="doc-totals">
+        <p>Subtotal: ${formatMoney(o.subtotal || 0)}</p>
+        <p>Shipping: ${formatMoney(o.shipTotal || 0)}</p>
+        <h3>Total Due: ${formatMoney(o.grandTotal || 0)}</h3>
         <span class="paid-stamp">PAID — ${o.paymentMethodName || ""}</span>
       </div>
     </div>
@@ -2643,14 +2656,17 @@ window.downloadAll = async (orderId) => {
   <h2>Items</h2>
   <table>
     <tr><th>Product</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
-    ${(o.items||[]).map(it => `<tr>
-      <td>${it.name}</td><td>${it.qty}</td><td>${it.price}</td>
-      <td>$${((parseFloat(String(it.price).replace(/[^0-9.]/g,""))||0)*it.qty).toFixed(2)}</td>
-    </tr>`).join("")}
+    ${(o.items||[]).map(it => {
+      const lineTotal = parseMoney(it.price) * (it.qty || 1);
+      return `<tr>
+        <td>${it.name}</td><td>${it.qty}</td><td>${it.price}</td>
+        <td>${formatMoney(lineTotal)}</td>
+      </tr>`;
+    }).join("")}
   </table>
-  <p><strong>Subtotal:</strong> $${(o.subtotal||0).toFixed(2)}</p>
-  <p><strong>Shipping:</strong> $${(o.shipTotal||0).toFixed(2)}</p>
-  <h2>Total: $${(o.grandTotal||0).toFixed(2)}</h2>
+  <p><strong>Subtotal:</strong> ${formatMoney(o.subtotal || 0)}</p>
+  <p><strong>Shipping:</strong> ${formatMoney(o.shipTotal || 0)}</p>
+  <h2>Total: ${formatMoney(o.grandTotal || 0)}</h2>
   <p class="stamp">✅ APPROVED</p>
   ${o.approvedAt?.toDate ? `<p>Approved on: ${o.approvedAt.toDate().toLocaleString()}</p>` : ""}
 </body></html>`;
@@ -3656,7 +3672,7 @@ window.openPaymentModal = (cartItems) => {
     return sum + p * (c.qty || 1) + s;
   }, 0);
 
-  $("payGrandTotal").textContent = "$" + grand.toFixed(2);
+ $("payGrandTotal").textContent = formatMoney(grand);
   $("payStep1").classList.remove("hidden");
   $("payStep2").classList.add("hidden");
   $("payFullName").value = currentUserData?.username || "";
@@ -3941,7 +3957,7 @@ function renderOrderCard(o, isPending) {
     </div>
     <div class="bill-items">${itemsHtml}</div>
     <div class="bill-total">
-      <span>Total</span><strong>$${(o.grandTotal||0).toFixed(2)}</strong>
+      <span>Total</span><strong>${formatMoney(o.grandTotal || 0)}</strong>
     </div>
     ${isPending ? `
       <div class="bill-actions">
@@ -3979,7 +3995,7 @@ window.approveOrder = async (id) => {
       orderRef: order.reference || id.slice(0, 8).toUpperCase(),
       productName: (order.items?.[0]?.name || "Order") +
         (order.items?.length > 1 ? ` +${order.items.length - 1} more` : ""),
-      price: "$" + (order.grandTotal || 0).toFixed(2),
+      price: formatMoney(order.grandTotal || 0),
       items: order.items || [],
       trackingId,
       
@@ -5206,6 +5222,9 @@ function renderGalleryPreview() {
 // ============================================================
 // WIRE COLOUR / GALLERY INPUTS
 // ============================================================
+
+
+
 (function wireProductExtras() {
   const cIn = $("productColours");
   if (cIn) cIn.addEventListener("input", renderColourPreview);
@@ -5233,3 +5252,419 @@ function renderGalleryPreview() {
     });
   }
 })();
+
+// ============================================================
+// PRODUCT SEARCH — queries Firestore directly
+// ============================================================
+
+
+function wireProductSearch() {
+  const input = document.getElementById("productSearchInput");
+  const clearBtn = document.getElementById("productSearchClear");
+  const meta = document.getElementById("productSearchMeta");
+  const resultsWrap = document.getElementById("searchResultsWrap");
+  const resultsBox = document.getElementById("searchResults");
+  const emptyMsg = document.getElementById("searchEmpty");
+  const loadingMsg = document.getElementById("searchLoading");
+  const normalView = document.getElementById("normalProductsView");
+  
+  if (!input || !resultsWrap) return;
+  if (input._wired) return; // guard against double-wiring
+  input._wired = true;
+  
+  // ---------- input (debounced) ----------
+  input.addEventListener("input", () => {
+    clearTimeout(_searchState.debounceId);
+    _searchState.debounceId = setTimeout(() => runProductSearch(input.value), 300);
+  });
+  
+  // ---------- Enter = run immediately ----------
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      clearTimeout(_searchState.debounceId);
+      runProductSearch(input.value);
+    }
+    if (e.key === "Escape") {
+      input.value = "";
+      runProductSearch("");
+    }
+  });
+  
+  // ---------- clear ----------
+  clearBtn?.addEventListener("click", () => {
+    input.value = "";
+    input.focus();
+    runProductSearch("");
+  });
+  
+  // ---------- core ----------
+  async function runProductSearch(raw) {
+    const q = String(raw || "").trim();
+    _searchState.query = q;
+    
+    clearBtn.classList.toggle("hidden", !q);
+    
+    // Empty query → back to normal grid
+    if (!q) {
+      resultsWrap.classList.add("hidden");
+      normalView.classList.remove("hidden");
+      meta.textContent = "";
+      resultsBox.innerHTML = "";
+      loadingMsg.classList.add("hidden");
+      emptyMsg.classList.add("hidden");
+      return;
+    }
+    
+    // Show search view
+    normalView.classList.add("hidden");
+    resultsWrap.classList.remove("hidden");
+    resultsBox.innerHTML = "";
+    emptyMsg.classList.add("hidden");
+    loadingMsg.classList.remove("hidden");
+    meta.innerHTML = `Searching for “${escapeHtml(q)}”…`;
+    
+    // Token guard so a stale (slow) request can't overwrite a newer one
+    const token = ++_searchState.reqToken;
+    
+    try {
+      const results = await searchProductsInFirestore(q);
+      
+      if (token !== _searchState.reqToken) return; // outdated
+      
+      loadingMsg.classList.add("hidden");
+      
+      if (results.length === 0) {
+        emptyMsg.classList.remove("hidden");
+        meta.innerHTML = `No matches for “${escapeHtml(q)}”`;
+        return;
+      }
+      
+      results.forEach(p => {
+        resultsBox.appendChild(buildSearchResultCard(p, q));
+      });
+      
+      meta.innerHTML = `Found <strong>${results.length}</strong> product${results.length === 1 ? "" : "s"} for “${escapeHtml(q)}”`;
+      resultsBox.className = currentView === "list" ? "product-list" : "product-grid";
+    } catch (err) {
+      console.error("Search failed:", err);
+      if (token !== _searchState.reqToken) return;
+      loadingMsg.classList.add("hidden");
+      emptyMsg.classList.remove("hidden");
+      meta.textContent = "Search failed. Please try again.";
+    }
+  }
+  
+  window.runProductSearch = runProductSearch;
+}
+
+// ============================================================
+// FIRESTORE SEARCH
+// Pulls all active products once per search, then filters
+// client-side across name / brand / description / colours / price.
+// (Firestore has no built-in full-text search, so this is the
+// correct approach without adding Algolia/Elastic.)
+// ============================================================
+async function searchProductsInFirestore(queryText) {
+  const q = queryText.toLowerCase().trim();
+  if (!q) return [];
+  
+  // Read all active products from Firestore (fresh each search)
+  const snap = await getDocs(
+    query(collection(db, "products"), where("active", "==", true))
+  );
+  
+  const products = [];
+  snap.forEach(d => products.push({ id: d.id, ...d.data() }));
+  
+  const tokens = q.split(/\s+/).filter(Boolean);
+  
+  const scored = [];
+  
+  products.forEach(p => {
+    // Build searchable haystack — name, brand, description, colours, price
+    const parts = [
+      p.name,
+      p.brand, // ← supports a `brand` field if you add one
+      p.description,
+      p.price,
+      p.shippingFee,
+      p.mediaType,
+      ...(Array.isArray(p.colours) ? p.colours : []),
+      ...(Array.isArray(p.tags) ? p.tags : [])
+    ].filter(Boolean);
+    
+    const haystack = parts.join(" ").toLowerCase();
+    
+    // AND across tokens: every token must be present
+    const allMatch = tokens.every(t => haystack.includes(t));
+    if (!allMatch) return;
+    
+    // ---- Relevance score ----
+    let score = 0;
+    const name = (p.name || "").toLowerCase();
+    const brand = (p.brand || "").toLowerCase();
+    
+    tokens.forEach(t => {
+      if (name === t) score += 120;
+      if (brand === t) score += 110;
+      if (name.startsWith(t)) score += 70;
+      if (brand.startsWith(t)) score += 60;
+      if (name.includes(t)) score += 40;
+      if (brand.includes(t)) score += 35;
+      if ((p.description || "").toLowerCase().includes(t)) score += 8;
+      if ((p.price || "").toLowerCase().includes(t)) score += 4;
+    });
+    
+    scored.push({ p, score });
+  });
+  
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .map(s => s.p);
+}
+
+// ============================================================
+// BUILD A SEARCH RESULT CARD (mirrors the normal product card)
+// ============================================================
+function buildSearchResultCard(product, query) {
+  const card = document.createElement("div");
+  card.className = "product-card";
+  card.dataset.productId = product.id;
+  
+  const type = product.mediaType || (product.video ? "video" : product.youtube ? "youtube" : "image");
+  const url = product.mediaUrl || product.image || product.video || product.youtube || "";
+  
+  let mediaHtml = "";
+  if (type === "youtube") {
+    const ytId = extractYoutubeId(url);
+    mediaHtml = ytId ?
+      `<iframe class="product-yt" src="https://www.youtube.com/embed/${ytId}" frameborder="0" allowfullscreen></iframe>` :
+      `<img src="" alt="${escapeHtml(product.name || "")}">`;
+  } else if (type === "video") {
+    mediaHtml = `<video src="${url}" muted loop playsinline></video>`;
+  } else {
+    mediaHtml = `<img src="${url}" alt="${escapeHtml(product.name || "")}" loading="lazy">`;
+  }
+  
+  const coloursList = (product.colours || []).map(c => String(c).trim()).filter(Boolean);
+  const shipLabel = product.shippingType === "free" ?
+    "🆓 Free Shipping" :
+    product.shippingFee ? `🚚 Shipping: ${product.shippingFee}` : "";
+  
+  card.innerHTML = `
+    <div class="product-media">
+      ${mediaHtml}
+      ${coloursList.length > 1 ? `<span class="product-badge">${coloursList.length} colours</span>` : ""}
+    </div>
+    <div class="product-info">
+      <h3>${highlightMatches(escapeHtml(product.name || ""), query)}</h3>
+      <p class="price">${highlightMatches(escapeHtml(product.price || ""), query)}</p>
+      ${shipLabel ? `<p class="ship-tag">${shipLabel}</p>` : ""}
+      ${coloursList.length ? `
+        <div class="colour-strip">
+          ${coloursList.map(c => `
+            <button type="button" class="colour-dot"
+                    data-colour="${escapeHtml(c)}"
+                    title="${escapeHtml(c)}"
+                    style="background:${colourToCss(c)}"></button>
+          `).join("")}
+        </div>` : ""}
+
+      <div class="product-desc-wrap" data-desc-id="${product.id}">
+        <div class="product-desc formatted">
+          ${highlightMatches(formatDescription(product.description || ""), query)}
+        </div>
+      </div>
+
+      <button type="button" class="btn-more-details"
+              onclick="toggleProductDetails('${product.id}', this)">
+        <span class="label">More Details</span>
+        <span class="arrow">▾</span>
+      </button>
+
+      <div class="product-actions">
+        <button class="btn-add-cart"  onclick='openProductModalById("${product.id}", "cart")'>🛒 Add to Cart</button>
+        <button class="btn-place-order" onclick='openProductModalById("${product.id}", "order")'>⚡ Place Order</button>
+      </div>
+    </div>
+  `;
+  
+  card.querySelectorAll(".colour-dot").forEach(dot => {
+    dot.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openProductModalById(product.id, "cart", dot.dataset.colour);
+    });
+  });
+  
+  return card;
+}
+
+// ============================================================
+// HIGHLIGHT MATCHED TOKENS — safe inside HTML
+// ============================================================
+function highlightMatches(html, query) {
+  if (!query) return html;
+  const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return html;
+  
+  const pattern = tokens
+    .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .sort((a, b) => b.length - a.length)
+    .join("|");
+  
+  if (!pattern) return html;
+  
+  return html.replace(/(<[^>]+>)|([^<]+)/g, (match, tag, text) => {
+    if (tag) return tag;
+    return text.replace(new RegExp(`(${pattern})`, "gi"), '<span class="search-hit">$1</span>');
+  });
+}
+
+// Wire it up
+document.addEventListener("DOMContentLoaded", wireProductSearch);
+
+// ============================================================
+// ADMIN PRODUCT SEARCH — wiring + rendering
+// ============================================================
+function wireAdminProductSearch() {
+  const input = document.getElementById("adminProductSearch");
+  const clearBtn = document.getElementById("adminProductSearchClear");
+  if (!input || input._wired) return;
+  input._wired = true;
+  
+  input.addEventListener("input", () => renderAdminProductList());
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      input.value = "";
+      renderAdminProductList();
+    }
+  });
+  
+  clearBtn?.addEventListener("click", () => {
+    input.value = "";
+    input.focus();
+    renderAdminProductList();
+  });
+}
+
+function renderAdminProductList() {
+  const list = $("adminProductList");
+  const emptyMsg = $("adminProductEmpty");
+  const meta = $("adminProductSearchMeta");
+  const clearBtn = $("adminProductSearchClear");
+  const input = $("adminProductSearch");
+  if (!list) return;
+  
+  const rawQuery = (input?.value || "").trim();
+  const q = rawQuery.toLowerCase();
+  const tokens = q.split(/\s+/).filter(Boolean);
+  
+  clearBtn?.classList.toggle("hidden", !rawQuery);
+  
+  // ---------- Filter ----------
+  let visible = _adminAllProducts;
+  
+  if (tokens.length) {
+    visible = _adminAllProducts.filter(p => {
+      const haystack = [
+          p.name,
+          p.brand,
+          p.price,
+          p.shippingFee,
+          p.description,
+          p.mediaType,
+          ...(Array.isArray(p.colours) ? p.colours : []),
+          ...(Array.isArray(p.tags) ? p.tags : [])
+        ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      
+      return tokens.every(t => haystack.includes(t));
+    });
+  }
+  
+  // ---------- Render ----------
+  list.innerHTML = "";
+  
+  if (_adminAllProducts.length === 0) {
+    list.innerHTML = '<p class="ud-empty">No products yet. Add your first one above.</p>';
+    if (emptyMsg) emptyMsg.classList.add("hidden");
+    if (meta) meta.textContent = "";
+    return;
+  }
+  
+  if (visible.length === 0) {
+    if (emptyMsg) emptyMsg.classList.remove("hidden");
+    if (meta) meta.innerHTML = `No matches for “${escapeHtml(rawQuery)}”`;
+    return;
+  }
+  
+  if (emptyMsg) emptyMsg.classList.add("hidden");
+  
+  if (meta) {
+    meta.innerHTML = rawQuery ?
+      `Showing <strong>${visible.length}</strong> of ${_adminAllProducts.length} for “${escapeHtml(rawQuery)}”` :
+      `Showing all ${_adminAllProducts.length} products`;
+  }
+  
+  visible.forEach(p => list.appendChild(buildAdminProductItem(p, rawQuery)));
+}
+
+function buildAdminProductItem(p, query = "") {
+  const thumb = p.mediaType === "youtube" ?
+    `https://img.youtube.com/vi/${extractYoutubeId(p.youtube || p.mediaUrl)}/default.jpg` :
+    (p.image || "");
+  
+  const mediaBadge = p.mediaType === "youtube" ? "▶️ YouTube" :
+    p.mediaType === "video" ? "🎥 Video" :
+    "🖼️ Image";
+  
+  const shipLabel = p.shippingType === "free" ?
+    "🆓 Free ship" :
+    `🚚 ${p.shippingFee || ""}`;
+  
+  const div = document.createElement("div");
+  div.className = "ad-item";
+  div.innerHTML = `
+    <img class="ad-item-thumb" src="${thumb}" alt="">
+    <div class="ad-item-body">
+      <h5>
+        ${highlightAdminMatches(escapeHtml(p.name || ""), query)}
+        <span class="ad-badge ${p.active ? 'on' : 'off'}">${p.active ? 'Active' : 'Inactive'}</span>
+      </h5>
+      <p>
+        <span class="price">${highlightAdminMatches(escapeHtml(p.price || ""), query)}</span> ·
+        ${shipLabel} ·
+        ${mediaBadge}
+      </p>
+    </div>
+    <div class="ad-item-actions">
+      <button class="btn-edit" onclick="editProduct('${p.id}')">Edit</button>
+      <button class="btn-toggle" onclick="toggleProduct('${p.id}', ${p.active})">${p.active ? "Disable" : "Enable"}</button>
+      <button class="btn-delete" onclick="deleteProduct('${p.id}')">Delete</button>
+    </div>`;
+  return div;
+}
+
+function highlightAdminMatches(html, query) {
+  if (!query) return html;
+  const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
+  if (!tokens.length) return html;
+  
+  const pattern = tokens
+    .map(t => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .sort((a, b) => b.length - a.length)
+    .join("|");
+  
+  if (!pattern) return html;
+  
+  return html.replace(/(<[^>]+>)|([^<]+)/g, (match, tag, text) => {
+    if (tag) return tag;
+    return text.replace(
+      new RegExp(`(${pattern})`, "gi"),
+      '<span class="admin-search-hit">$1</span>'
+    );
+  });
+}
