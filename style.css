@@ -4929,3 +4929,126 @@ section {
   padding: 0 1px;
   font-weight: 700;
 }
+
+/* ============================================================
+   APPROVE MODAL — route chips
+   ============================================================ */
+.route-quick-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 14px;
+}
+
+.route-chip {
+  padding: 6px 12px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  font-size: .78rem;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  font-family: inherit;
+  transition: .15s;
+}
+.route-chip:hover {
+  background: #e0f2fe;
+  border-color: #0ea5e9;
+  color: #0369a1;
+}
+.route-chip:active {
+  transform: scale(0.96);
+}
+
+/* ============================================================
+   ROUTE DISPLAY — progress panel
+   ============================================================ */
+.progress-route {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin: 14px 0;
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+}
+
+.progress-route.compact {
+  padding: 10px 14px;
+  margin: 10px 0;
+}
+
+.progress-route-point {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+}
+
+.progress-route-label {
+  display: block;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .8px;
+  color: #0369a1;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.progress-route-city {
+  display: block;
+  font-size: .92rem;
+  font-weight: 700;
+  color: #0f172a;
+  word-break: break-word;
+  line-height: 1.3;
+}
+
+.progress-route.compact .progress-route-city {
+  font-size: .84rem;
+}
+
+.progress-route-line {
+  flex-shrink: 0;
+  color: #0ea5e9;
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-route.compact .progress-route-line {
+  font-size: 1.1rem;
+}
+
+/* Customer note */
+.progress-note {
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  background: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: 8px;
+  font-size: .85rem;
+  color: #78350f;
+}
+.progress-note-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+.progress-note p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 480px) {
+  .progress-route {
+    padding: 12px;
+    gap: 8px;
+  }
+  .progress-route-city { font-size: .82rem; }
+  .progress-route-line { font-size: 1rem; }
+}

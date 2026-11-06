@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tz BIKES</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="https://kommodo.ai/i/JrvGZEcCElosLgLTOnPK">
+    
+    <link rel="shortcut icon" href="https://kommodo.ai/i/JrvGZEcCElosLgLTOnPK">
 <link rel="stylesheet" href="style.css">
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5z"/></svg>
@@ -173,7 +177,7 @@
     <div class="footer-col footer-brand">
       <h3 class="footer-logo" id="footerBrandName">Tz BIKES</h3>
       <p class="footer-tagline" id="footerTagline">
-        Quality products shipped from China to Tanzania — fast and reliable.
+        Quality products shipped from outside to Tanzania — fast and reliable.
       </p>
       <div class="footer-socials" id="footerSocials">
         <!-- populated live from contacts (type: social) -->
@@ -387,7 +391,7 @@
       </button>
    <button class="ud-nav-btn" data-ud="progress">
   <span class="ud-ic">📦</span> Product Progress
-  <small class="ud-sub">China → Tanzania</small>
+  <small class="ud-sub">Import → Tanzania</small>
 </button>
     </nav>
 
@@ -1364,6 +1368,57 @@ Tip:
       <button type="button" class="btn-primary" id="setStageApplyBtn">✅ Apply</button>
       <button type="button" class="btn-secondary" onclick="closeSetStageModal()">Cancel</button>
     </div>
+  </div>
+</div>
+
+<!-- ============ APPROVE ORDER + ROUTE MODAL ============ -->
+<div id="approveOrderModal" class="modal">
+  <div class="modal-content payment-modal-content">
+    <span class="close-modal" onclick="closeApproveModal()">&times;</span>
+    <h2 class="pay-title">✅ Approve Order &amp; Set Route</h2>
+    <p class="pay-sub" id="approveOrderInfo">Order: —</p>
+
+    <form id="approveOrderForm" class="admin-form">
+
+      <!-- FROM -->
+      <label>From (Origin)</label>
+      <input type="text" id="approveFromInput"
+             placeholder="e.g. Guangzhou, China" required>
+      <div class="route-quick-row">
+        <button type="button" class="route-chip" data-target="approveFromInput" data-val="Guangzhou, China">Guangzhou</button>
+        <button type="button" class="route-chip" data-target="approveFromInput" data-val="Shenzhen, China">Shenzhen</button>
+        <button type="button" class="route-chip" data-target="approveFromInput" data-val="Yiwu, China">Yiwu</button>
+        <button type="button" class="route-chip" data-target="approveFromInput" data-val="China Warehouse">China Warehouse</button>
+      </div>
+
+      <!-- TO -->
+      <label>To (Destination)</label>
+      <input type="text" id="approveToInput"
+             placeholder="e.g. Dar es Salaam, Tanzania" required>
+      <div class="route-quick-row">
+        <button type="button" class="route-chip" data-target="approveToInput" data-val="Dar es Salaam, Tanzania">Dar es Salaam</button>
+        <button type="button" class="route-chip" data-target="approveToInput" data-val="Arusha, Tanzania">Arusha</button>
+        <button type="button" class="route-chip" data-target="approveToInput" data-val="Mwanza, Tanzania">Mwanza</button>
+        <button type="button" class="route-chip" data-target="approveToInput" data-val="Dodoma, Tanzania">Dodoma</button>
+      </div>
+
+      <!-- Optional tracking number -->
+      <label>Custom Tracking ID <small>(optional — auto-generated if blank)</small></label>
+      <input type="text" id="approveTrackingInput"
+             placeholder="e.g. TRK-ABC123">
+
+      <!-- Optional notes for user -->
+      <label>Note for Customer <small>(optional)</small></label>
+      <textarea id="approveNoteInput" style="min-height:80px"
+                placeholder="e.g. Package will be shipped by air this week."></textarea>
+
+      <p id="approveError" class="error-msg"></p>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" id="approveSubmitBtn">✅ Approve &amp; Start Tracking</button>
+        <button type="button" class="btn-secondary" onclick="closeApproveModal()">Cancel</button>
+      </div>
+    </form>
   </div>
 </div>
 

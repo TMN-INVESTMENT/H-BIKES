@@ -2374,52 +2374,75 @@ function dismissToast(el) {
 window.toast = toast;
 
 // ============================================================
-// USER CART
+// USER CART — fixed version
 // ============================================================
 function loadUserCart() {
   if (!currentUser) return;
+  
   const q = query(collection(db, "carts"), where("userId", "==", currentUser.uid));
+  
   onSnapshot(q, (snap) => {
     const list = $("udCartList");
+    if (!list) return;
+    
     list.innerHTML = "";
     let total = 0;
     let count = 0;
-
+    
     if (snap.empty) {
       list.innerHTML = '<p class="ud-empty">Your cart is empty.</p>';
       $("udCartTotalWrap").style.display = "none";
     } else {
       snap.forEach(d => {
-  const c = d.data();
-  count++;
-  const price = parseFloat(String(c.price).replace(/[^0-9.]/g, "")) || 0;
-  const shipFee = c.shippingType === "paid" ?
-    (parseFloat(String(c.shippingFee).replace(/[^0-9.]/g, "")) || 0) :
-    0;
-  total += (price * (c.qty || 1)) + shipFee;
-  
-  const colourLine = c.colour ? ` · 🎨 ${c.colour}` : "";
-
-div.innerHTML = `
-  <img src="${c.image || ''}" alt="" style="width:52px;height:52px;object-fit:cover;border-radius:8px;">
-  <div class="ud-item-info">
-    <h5>${c.name}</h5>
-    <p>Qty: ${c.qty || 1}${colourLine}${shipFee ? ` · 🚚 +${c.shippingFee}` : " · 🆓 Free ship"}</p>
-  </div>
-  <div style="text-align:right">
-    <p class="ud-item-price">${c.price}</p>
-    <div class="ud-item-actions">
-      <button onclick="udRemoveFromCart('${d.id}')" title="Remove">&times;</button>
-    </div>
-  </div>`;
-  list.appendChild(div);
-});
+        const c = d.data();
+        count++;
+        
+        const price = parseMoney(c.price);
+        const shipFee = c.shippingType === "paid" ? parseMoney(c.shippingFee) : 0;
+        
+        total += price * (c.qty || 1) + shipFee;
+        
+        const colourLine = c.colour ? ` · 🎨 ${c.colour}` : "";
+        const shipLine = shipFee ?
+          ` · 🚚 +${formatMoney(shipFee)}` :
+          " · 🆓 Free ship";
+        
+        // ✅ Create the element BEFORE using it
+        const div = document.createElement("div");
+        div.className = "ud-item";
+        
+        div.innerHTML = `
+          <img src="${c.image || ''}" alt=""
+               style="width:52px;height:52px;object-fit:cover;border-radius:8px;">
+          <div class="ud-item-info">
+            <h5>${escapeHtml(c.name || "Product")}</h5>
+            <p>Qty: ${c.qty || 1}${colourLine}${shipLine}</p>
+          </div>
+          <div style="text-align:right">
+            <p class="ud-item-price">${c.price || ""}</p>
+            <div class="ud-item-actions">
+              <button onclick="udRemoveFromCart('${d.id}')" title="Remove">&times;</button>
+            </div>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+      
       $("udCartTotal").textContent = formatMoney(total);
       $("udCartTotalWrap").style.display = "flex";
     }
-
-    $("udCartCount").textContent  = count;
-    $("udStatCart").textContent   = count;
+    
+    const countEl = $("udCartCount");
+    if (countEl) countEl.textContent = count;
+    
+    const statEl = $("udStatCart");
+    if (statEl) statEl.textContent = count;
+    
+  }, (err) => {
+    console.error("Cart listener error:", err.code, err.message);
+    const list = $("udCartList");
+    if (list) list.innerHTML =
+      `<p class="ud-empty">Failed to load cart: ${err.code || "unknown"}</p>`;
   });
 }
 
@@ -3054,15 +3077,26 @@ function loadUserProgress() {
           </div>
         </div>`).join("");
       
-      // WhatsApp follow-up — enabled once it's shipping or arrived Dar
-      const showWhatsApp = stage >= 3; // Safarini or later
-      const waPhone = (p.adminPhone || "").replace(/\D/g, "");
-      const waMessage = encodeURIComponent(
-        `Hello! I'd like to follow up on my order.\n` +
-        `Tracking: ${p.trackingId}\n` +
-        `Product: ${p.productName}\n` +
-        `Current stage: ${current.label || "—"} (${current.place || ""})`
-      );
+  // ============================================================
+// WhatsApp follow-up — always goes to the business line
+// ============================================================
+const showWhatsApp = stage >= 3; // Safarini or later
+
+const BUSINESS_WHATSAPP = "255629899783"; // ← +255 629 899 783
+
+const waMessage = encodeURIComponent(
+  `Hello Tz BIKES! 👋\n\n` +
+  `I'd like to follow up on my order:\n\n` +
+  `📦 Product: ${p.productName || "—"}\n` +
+  `🔖 Tracking: ${p.trackingId || "—"}\n` +
+  `📋 Order Ref: ${p.orderRef || "—"}\n` +
+  `📍 Current stage: ${current.label || "—"}\n` +
+  `🌍 Location: ${current.place || "—"}\n\n` +
+  `Thank you!`
+);
+
+const waLink = `https://wa.me/${BUSINESS_WHATSAPP}?text=${waMessage}`;
+
       const waLink = waPhone ?
         `https://wa.me/${waPhone}?text=${waMessage}` :
         `https://wa.me/?text=${waMessage}`;
@@ -3073,48 +3107,72 @@ function loadUserProgress() {
       div.style.alignItems = "stretch";
       
       div.innerHTML = `
-        <div class="bill-head">
-          <div>
-            <h5>${p.productName}</h5>
-            <p class="bill-date">Tracking: <strong>${p.trackingId}</strong></p>
-            <p class="bill-date">Ref: ${p.orderRef || "—"} · ${p.price || ""}</p>
-          </div>
-          <span class="ad-badge ${stage >= 5 ? 'on' : 'warn'}">
-            ${stage >= 5 ? "✅ Delivered" : `Stage ${stage}/5`}
-          </span>
-        </div>
+  <div class="bill-head">
+    <div>
+      <h5>${escapeHtml(p.productName || "Order")}</h5>
+      <p class="bill-date">Tracking: <strong>${p.trackingId}</strong></p>
+      <p class="bill-date">Ref: ${p.orderRef || "—"} · ${p.price || ""}</p>
+    </div>
+    <span class="ad-badge ${stage >= 5 ? 'on' : 'warn'}">
+      ${stage >= 5 ? "✅ Delivered" : `Stage ${stage}/5`}
+    </span>
+  </div>
 
-        <!-- Journey visual -->
-        <div class="ud-progress-bar">${stepper}</div>
+  <!-- ✅ ROUTE BLOCK -->
+  ${(p.from || p.to) ? `
+    <div class="progress-route">
+      <div class="progress-route-point">
+        <span class="progress-route-label">FROM</span>
+        <span class="progress-route-city">${escapeHtml(p.from || "—")}</span>
+      </div>
+      <div class="progress-route-line">
+        <span class="progress-route-arrow">→</span>
+      </div>
+      <div class="progress-route-point">
+        <span class="progress-route-label">TO</span>
+        <span class="progress-route-city">${escapeHtml(p.to || "—")}</span>
+      </div>
+    </div>
+  ` : ""}
 
-        <!-- Current status -->
-        <div class="progress-current">
-          <p class="progress-current-label">📍 Currently: <strong>${current.label || "—"}</strong></p>
-          <p class="progress-current-place">${current.place || ""}</p>
-        </div>
+  <!-- Journey visual -->
+  <div class="ud-progress-bar">${stepper}</div>
 
-        <!-- Full stage list -->
-        <details class="progress-details">
-          <summary>View full journey</summary>
-          <div class="ad-stage-list">${stageList}</div>
-        </details>
+  <!-- Current status -->
+  <div class="progress-current">
+    <p class="progress-current-label">📍 Currently: <strong>${escapeHtml(current.label || "—")}</strong></p>
+    <p class="progress-current-place">${escapeHtml(current.place || "")}</p>
+  </div>
 
-        <!-- WhatsApp follow-up -->
-        ${showWhatsApp ? `
-          <div class="progress-actions">
-            <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
-              💬 Contact on WhatsApp
-            </a>
-            <p class="progress-hint">Chat directly with our team about your shipment.</p>
-          </div>
-        ` : `
-          <div class="progress-actions">
-            <p class="progress-hint">
-              💬 WhatsApp follow-up becomes available once your order is in transit.
-            </p>
-          </div>
-        `}
-      `;
+  <!-- Customer note from admin -->
+  ${p.note ? `
+    <div class="progress-note">
+      <span class="progress-note-icon">📝</span>
+      <p>${escapeHtml(p.note)}</p>
+    </div>` : ""}
+
+  <!-- Full stage list -->
+  <details class="progress-details">
+    <summary>View full journey</summary>
+    <div class="ad-stage-list">${stageList}</div>
+  </details>
+
+  <!-- WhatsApp follow-up -->
+  ${showWhatsApp ? `
+    <div class="progress-actions">
+      <a href="${waLink}" target="_blank" rel="noopener noreferrer" class="btn-whatsapp">
+        💬 Contact on WhatsApp
+      </a>
+      <p class="progress-hint">Chat directly with our team about your shipment.</p>
+    </div>
+  ` : `
+    <div class="progress-actions">
+      <p class="progress-hint">
+        💬 WhatsApp follow-up becomes available once your order is in transit.
+      </p>
+    </div>
+  `}
+`;
       list.appendChild(div);
     });
     
@@ -3969,15 +4027,87 @@ function renderOrderCard(o, isPending) {
 }
 
 // ============================================================
-// ADMIN — APPROVE ORDER + AUTO-CREATE PROGRESS TRACKING
+// ADMIN — APPROVE ORDER (opens route modal)
 // ============================================================
+let _approveOrderId = null;
+
 window.approveOrder = async (id) => {
-  if (!confirm("Approve this payment and start product tracking?")) return;
+  try {
+    const snap = await getDoc(doc(db, "orders", id));
+    if (!snap.exists()) { toast("Order not found.", "error"); return; }
+    
+    const order = snap.data();
+    _approveOrderId = id;
+    
+    // Fill header
+    $("approveOrderInfo").textContent =
+      `Order: ${order.reference || id.slice(0, 8)} · ` +
+      `${order.userName || ""} · ${formatMoney(order.grandTotal || 0)}`;
+    
+    // Defaults
+    $("approveFromInput").value = "Guangzhou, China";
+    $("approveToInput").value = "Dar es Salaam, Tanzania";
+    $("approveTrackingInput").value = "";
+    $("approveNoteInput").value = "";
+    $("approveError").textContent = "";
+    
+    $("approveOrderModal").classList.add("active");
+    document.body.style.overflow = "hidden";
+    
+    setTimeout(() => $("approveFromInput")?.focus(), 150);
+  } catch (err) {
+    console.error(err);
+    toast("Failed to load order.", "error");
+  }
+};
+
+window.closeApproveModal = () => {
+  $("approveOrderModal").classList.remove("active");
+  document.body.style.overflow = "";
+  _approveOrderId = null;
+};
+
+// Route chip shortcuts — click to fill the corresponding input
+document.querySelectorAll(".route-chip").forEach(chip => {
+  chip.addEventListener("click", () => {
+    const targetId = chip.dataset.target;
+    const val = chip.dataset.val;
+    const input = document.getElementById(targetId);
+    if (input) input.value = val;
+  });
+});
+
+// Submit
+$("approveOrderForm")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  
+  const errEl = $("approveError");
+  errEl.textContent = "";
+  
+  const id = _approveOrderId;
+  if (!id) return;
+  
+  const from = $("approveFromInput").value.trim();
+  const to = $("approveToInput").value.trim();
+  let tracking = $("approveTrackingInput").value.trim();
+  const note = $("approveNoteInput").value.trim();
+  
+  if (!from) { errEl.textContent = "Enter where the package is coming from."; return; }
+  if (!to) { errEl.textContent = "Enter where the package is going."; return; }
+  
+  if (!tracking) {
+    tracking = "TRK-" + Date.now().toString(36).toUpperCase();
+  }
+  
+  const btn = $("approveSubmitBtn");
+  const origText = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = "Approving…";
   
   try {
-    const orderSnap = await getDoc(doc(db, "orders", id));
-    if (!orderSnap.exists()) { toast("Order not found.", "error"); return; }
-    const order = orderSnap.data();
+    const snap = await getDoc(doc(db, "orders", id));
+    if (!snap.exists()) throw new Error("Order gone");
+    const order = snap.data();
     
     // 1) Mark order approved
     await updateDoc(doc(db, "orders", id), {
@@ -3986,9 +4116,7 @@ window.approveOrder = async (id) => {
       approvedBy: currentUser.uid
     });
     
-    // 2) Create progress doc (China → Dar → Delivered)
-    const trackingId = "TRK-" + Date.now().toString(36).toUpperCase();
-    
+    // 2) Create progress doc with route
     await addDoc(collection(db, "progress"), {
       userId: order.userId,
       orderId: id,
@@ -3997,20 +4125,20 @@ window.approveOrder = async (id) => {
         (order.items?.length > 1 ? ` +${order.items.length - 1} more` : ""),
       price: formatMoney(order.grandTotal || 0),
       items: order.items || [],
-      trackingId,
+      trackingId: tracking,
+      
+      // ---- ROUTE ----
+      from, // e.g. "Guangzhou, China"
+      to, // e.g. "Dar es Salaam, Tanzania"
+      note, // optional customer note
       
       // ---- Journey stages ----
-      // 1 = Ordered (China warehouse)
-      // 2 = Packed in China
-      // 3 = Shipped / In transit (Safarini)
-      // 4 = Arrived Dar es Salaam
-      // 5 = Delivered
       stage: 1,
       stages: [
-        { key: 1, label: "Order Confirmed", place: "China Warehouse", done: true, at: new Date().toISOString() },
-        { key: 2, label: "Packed & Ready", place: "China Warehouse", done: false, at: null },
-        { key: 3, label: "In Transit (Safarini)", place: "China → Tanzania", done: false, at: null },
-        { key: 4, label: "Arrived Dar es Salaam", place: "Dar es Salaam", done: false, at: null },
+        { key: 1, label: "Order Confirmed", place: from, done: true, at: new Date().toISOString() },
+        { key: 2, label: "Packed & Ready", place: from, done: false, at: null },
+        { key: 3, label: "In Transit (Safarini)", place: `${from} → ${to}`, done: false, at: null },
+        { key: 4, label: "Arrived Destination", place: to, done: false, at: null },
         { key: 5, label: "Delivered", place: "Customer Address", done: false, at: null }
       ],
       
@@ -4022,13 +4150,26 @@ window.approveOrder = async (id) => {
       updatedAt: serverTimestamp()
     });
     
-    toast("✅ Order approved. Tracking started (China → Dar es Salaam).", "success", 4500);
-    
+    toast("✅ Order approved. Route saved & tracking started.", "success", 4000);
+    closeApproveModal();
   } catch (err) {
-    console.error("approveOrder error:", err);
-    toast("Failed to approve order.", "error");
+    console.error(err);
+    errEl.textContent = "Failed to approve order.";
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
   }
-};
+});
+
+// Close on backdrop + Escape
+$("approveOrderModal")?.addEventListener("click", (e) => {
+  if (e.target.id === "approveOrderModal") closeApproveModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && $("approveOrderModal")?.classList.contains("active")) {
+    closeApproveModal();
+  }
+});
 
 window.rejectOrder = async (id) => {
   if (!confirm("Reject this order?")) return;
@@ -4198,31 +4339,46 @@ function setupProgressAdmin() {
         </div>`).join("");
 
       const div = document.createElement("div");
-      div.className = "ud-item bill-card";
-      div.innerHTML = `
-        <div class="bill-head">
-          <div>
-            <h5>${p.orderRef} — ${p.productName}</h5>
-            <p class="bill-date">Tracking: ${p.trackingId}</p>
-            <p class="bill-date">Customer phone: ${p.contactPhone || "—"}</p>
-          </div>
-          <span class="ad-badge on">Stage ${p.stage}/5 · ${currentLabel}</span>
-        </div>
+div.className = "ud-item bill-card";
+div.innerHTML = `
+  <div class="bill-head">
+    <div>
+      <h5>${escapeHtml(p.orderRef || "—")} — ${escapeHtml(p.productName || "")}</h5>
+      <p class="bill-date">Tracking: ${p.trackingId || "—"}</p>
+      <p class="bill-date">Customer phone: ${p.contactPhone || "—"}</p>
+    </div>
+    <span class="ad-badge on">Stage ${p.stage}/5 · ${currentLabel}</span>
+  </div>
 
-        <div class="ad-stage-list">${stagesHtml}</div>
+  ${(p.from || p.to) ? `
+    <div class="progress-route compact">
+      <div class="progress-route-point">
+        <span class="progress-route-label">FROM</span>
+        <span class="progress-route-city">${escapeHtml(p.from || "—")}</span>
+      </div>
+      <div class="progress-route-line"><span class="progress-route-arrow">→</span></div>
+      <div class="progress-route-point">
+        <span class="progress-route-label">TO</span>
+        <span class="progress-route-city">${escapeHtml(p.to || "—")}</span>
+      </div>
+    </div>
+  ` : ""}
 
-        <div class="bill-actions">
-          <button class="btn-secondary" onclick="advanceProgress('${p.id}')">
-            ⏭️ Advance to Next Stage
-          </button>
-          <button class="btn-secondary" onclick="setProgressStage('${p.id}')"> 🎯 Set Stage…
-          </button>
-          <button class="btn-delete" onclick="deleteProgress('${p.id}')">
-            🗑️ Delete
-          </button>
-        </div>
-      `;
-      list.appendChild(div);
+  <div class="ad-stage-list">${stagesHtml}</div>
+
+  <div class="bill-actions">
+    <button class="btn-secondary" onclick="advanceProgress('${p.id}')">
+      ⏭️ Advance to Next Stage
+    </button>
+    <button class="btn-secondary" onclick="setProgressStage('${p.id}')">
+      🎯 Set Stage…
+    </button>
+    <button class="btn-delete" onclick="deleteProgress('${p.id}')">
+      🗑️ Delete
+    </button>
+  </div>
+`;
+list.appendChild(div);
     });
   });
 }
