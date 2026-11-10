@@ -150,7 +150,7 @@ window.formatMoney = formatMoney;
 window.parseMoney  = parseMoney;
 
 // ============================================================
-// REGISTRATION (with confirm password & terms)
+// REGISTRATION — username, phone, email, password, terms
 // ============================================================
 $("signupForm")?.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -165,9 +165,9 @@ $("signupForm")?.addEventListener("submit", async (e) => {
   const errEl = $("signupError");
   const okEl = $("signupSuccess");
   errEl.textContent = "";
-  toast(`Welcome! You're registered as ${role}.`, "success");
+  okEl.textContent = "";
   
-  // --- Validation ---
+  // ---------- Validation ----------
   if (!username || username.length < 3) {
     errEl.textContent = "Username must be at least 3 characters.";
     return;
@@ -194,23 +194,28 @@ $("signupForm")?.addEventListener("submit", async (e) => {
   }
   
   try {
-    // Check username & phone uniqueness
+    // ---------- 1. Uniqueness checks (before creating auth user) ----------
     const usersRef = collection(db, "users");
+    
     const [uSnap, pSnap] = await Promise.all([
       getDocs(query(usersRef, where("username", "==", username))),
       getDocs(query(usersRef, where("phone", "==", phone)))
     ]);
+    
     if (!uSnap.empty) { errEl.textContent = "Username already taken."; return; }
     if (!pSnap.empty) { errEl.textContent = "Phone number already registered."; return; }
     
-    // Create auth user
+    // ---------- 2. Count existing users (before auth creation) ----------
+    // Because the rule `allow read: if true` on /users lets us read without
+    // being signed in, this works BEFORE createUserWithEmailAndPassword.
+    const allUsersSnap = await getDocs(usersRef);
+    const isFirstUser = allUsersSnap.empty;
+    const role = isFirstUser ? "superadmin" : "user";
+    
+    // ---------- 3. Create the Firebase Auth account ----------
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     
-    // Determine role
-    const allUsers = await getDocs(collection(db, "users"));
-    const role = allUsers.empty ? "superadmin" : "user";
-    
-    // Write user doc
+    // ---------- 4. Write the Firestore user doc ----------
     await setDoc(doc(db, "users", cred.user.uid), {
       uid: cred.user.uid,
       username,
@@ -222,19 +227,42 @@ $("signupForm")?.addEventListener("submit", async (e) => {
       createdAt: serverTimestamp()
     });
     
+    // ---------- 5. Success feedback ----------
     okEl.textContent = `Account created! You are registered as ${role}.`;
-    $("signupForm").reset();
+    toast(`Welcome! You're registered as ${role}.`, "success");
     
-    // Reset eye icons
+    // Reset form + eye icons
+    $("signupForm").reset();
     document.querySelectorAll(".toggle-eye").forEach(btn => {
       btn.textContent = "👁️";
       btn.classList.remove("showing");
     });
     
+    // Redirect to dashboard
     setTimeout(() => routeToDashboard(), 800);
+    
   } catch (err) {
-    console.error(err);
-    errEl.textContent = err.message.replace("Firebase: ", "");
+    console.error("Signup error:", err);
+    
+    // Show a clean message for common Firebase errors
+    const msg = (err.code || "").replace("auth/", "").replace(/-/g, " ");
+    switch (err.code) {
+      case "auth/email-already-in-use":
+        errEl.textContent = "That email is already registered. Try logging in.";
+        break;
+      case "auth/invalid-email":
+        errEl.textContent = "Please enter a valid email address.";
+        break;
+      case "auth/weak-password":
+        errEl.textContent = "Password is too weak. Use at least 6 characters.";
+        break;
+      case "auth/network-request-failed":
+        errEl.textContent = "Network error. Check your connection and try again.";
+        break;
+      default:
+        errEl.textContent = err.message?.replace("Firebase: ", "") ||
+          "Signup failed. Please try again.";
+    }
   }
 });
 
@@ -5254,71 +5282,6 @@ function colourToCss(name) {
 }
 
 window.colourToCss = colourToCss;
-
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  
-  const id = $("productId").value;
-  const shippingType = document.querySelector('input[name="shippingType"]:checked').value;
-  const mediaType = document.querySelector('input[name="mediaType"]:checked').value;
-  const mediaUrl = $("productMediaUrl").value.trim();
-  
-  if (shippingType === "paid" && !$("shippingAmount").value.trim()) {
-    toast("Enter a shipping amount.", "warning");
-    $("shippingAmount").focus();
-    return;
-  }
-  if (mediaType === "youtube" && !extractYoutubeId(mediaUrl)) {
-    toast("Invalid YouTube URL.", "error");
-    return;
-  }
-  
-  // ---------- Colours ----------
-  const colours = ($("productColours").value || "")
-    .split(",")
-    .map(c => c.trim())
-    .filter(Boolean);
-  
-  // ---------- Gallery (one URL per line) ----------
-  const gallery = ($("productGallery").value || "")
-    .split(/\r?\n/)
-    .map(u => u.trim())
-    .filter(u => u && /^https?:\/\//i.test(u));
-  
-  // ---------- External link ----------
-  const link = ($("productLink").value || "").trim();
-  
-  const data = {
-    name: $("productName").value.trim(),
-    price: formatMoney($("productPrice").value),
-    shippingType,
-    shippingFee: shippingType === "free" ? "Free" : formatMoney($("shippingAmount").value),
-    mediaType,
-    mediaUrl,
-    image: mediaType === "image" ? mediaUrl : "",
-    video: mediaType === "video" ? mediaUrl : "",
-    youtube: mediaType === "youtube" ? mediaUrl : "",
-    colours,
-    gallery,
-    link,
-    description: $("productDesc").value,
-    active: $("productActive").checked
-  };
-  
-  try {
-    if (id) {
-      await updateDoc(doc(db, "products", id), data);
-      toast("Product updated.", "success");
-    } else {
-      await addDoc(collection(db, "products"), data);
-      toast("Product added.", "success");
-    }
-    resetProductForm();
-  } catch (err) {
-    console.error(err);
-    toast("Failed to save product.", "error");
-  }
-});
 
 // ============================================================
 // COLOUR PREVIEW (admin form)

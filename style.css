@@ -5052,3 +5052,322 @@ section {
   .progress-route-city { font-size: .82rem; }
   .progress-route-line { font-size: 1rem; }
 }
+
+/* ============================================================
+   ADAPTIVE PATCH — Search, Approve Route, Progress Route
+   Mobile-first · works on all browsers (fallback-safe)
+   ============================================================ */
+
+/* ---------- 1. Front-end product search (already partly styled) ---------- */
+/* Ensure wrapper never overflows on tiny screens */
+.product-search-wrap {
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto 1.25rem;
+  padding: 0 0.25rem;
+  box-sizing: border-box;
+}
+
+.product-search-box {
+  /* Flex fallback for browsers without :has() */
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 48px;
+}
+
+.product-search-input {
+  /* Prevent iOS Safari zoom + long-text overflow */
+  font-size: 16px;
+  min-height: 44px;
+  line-height: 1.3;
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+/* Clear button baseline (works even if .hidden fails) */
+.product-search-box .search-clear,
+.product-search-clear {
+  display: -webkit-inline-box;
+  display: -webkit-inline-flex;
+  display: inline-flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* "Search has no results" empty state */
+.product-search-empty {
+  grid-column: 1 / -1;
+  -ms-grid-column-span: 1;
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+.product-search-empty .icon {
+  display: block;
+  font-size: 2.5rem;
+  margin-bottom: 0.75rem;
+}
+.product-search-empty strong {
+  color: #0f172a;
+}
+
+@media (max-width: 480px) {
+  .product-search-input { font-size: 15px; padding: 0.85rem 0.5rem; }
+  .product-search-box .search-icon { padding-left: 0.7rem; font-size: 0.95rem; }
+  .product-search-empty { padding: 2rem 0.75rem; font-size: 0.85rem; }
+  .product-search-empty .icon { font-size: 2rem; }
+}
+
+/* ============================================================
+   2. Approve Order Modal — route chips
+   ============================================================ */
+.route-quick-row {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-wrap: wrap;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 6px 0 14px;
+}
+
+.route-chip {
+  padding: 0.5rem 0.85rem;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #334155;
+  font-family: inherit;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+  white-space: nowrap;
+}
+
+.route-chip:hover {
+  background: #e0f2fe;
+  border-color: #0ea5e9;
+  color: #0369a1;
+}
+
+.route-chip:active {
+  background: #bae6fd;
+  -webkit-transform: scale(0.97);
+  transform: scale(0.97);
+}
+
+.route-chip:focus-visible {
+  outline: 2px solid #0ea5e9;
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .route-chip {
+    font-size: 0.72rem;
+    padding: 0.45rem 0.7rem;
+  }
+}
+
+/* ============================================================
+   3. Progress Route Display (user + admin progress panels)
+   ============================================================ */
+.progress-route {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin: 14px 0;
+  background: -webkit-linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+  border: 1px solid #bae6fd;
+  border-radius: 12px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.progress-route.compact {
+  padding: 10px 14px;
+  margin: 10px 0;
+}
+
+.progress-route-point {
+  -webkit-flex: 1 1 0%;
+  flex: 1 1 0%;
+  min-width: 0;
+  text-align: center;
+}
+
+.progress-route-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  color: #0369a1;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+
+.progress-route-city {
+  display: block;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.progress-route.compact .progress-route-city {
+  font-size: 0.84rem;
+}
+
+.progress-route-line {
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  color: #0ea5e9;
+  font-size: 1.3rem;
+  font-weight: 700;
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: center;
+  align-items: center;
+  -webkit-justify-content: center;
+  justify-content: center;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.progress-route.compact .progress-route-line {
+  font-size: 1.1rem;
+}
+
+/* Customer note */
+.progress-note {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: flex;
+  gap: 10px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  background: #fef3c7;
+  border-left: 3px solid #f59e0b;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #78350f;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.progress-note-icon {
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.progress-note p {
+  margin: 0;
+  line-height: 1.5;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .progress-route {
+    padding: 12px;
+    gap: 8px;
+  }
+  .progress-route-city { font-size: 0.82rem; }
+  .progress-route-line { font-size: 1rem; }
+  .progress-route.compact { padding: 10px; }
+  .progress-route.compact .progress-route-city { font-size: 0.78rem; }
+  .progress-note { font-size: 0.8rem; padding: 9px 12px; }
+}
+
+/* ============================================================
+   4. Cross-browser helpers (fallback safety)
+   ============================================================ */
+
+/* Prevent sticky/hamburger z-index collision on older iOS */
+@supports (-webkit-touch-callout: none) {
+  .ud-header,
+  .ad-header {
+    position: -webkit-sticky;
+    position: sticky;
+  }
+}
+
+/* Grid fallback for IE-style engines — safe no-op on modern browsers */
+@supports not (display: grid) {
+  .product-grid,
+  .ud-stats,
+  .footer-wrap,
+  .about-grid-two {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    flex-wrap: wrap;
+  }
+  .product-grid > * { -webkit-flex: 1 1 100%; flex: 1 1 100%; }
+}
+
+/* Smooth scrolling toggle for users who prefer reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    -webkit-animation-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    -webkit-animation-iteration-count: 1 !important;
+    animation-iteration-count: 1 !important;
+    -webkit-transition-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Ensure buttons/inputs stay tappable everywhere */
+button,
+.route-chip,
+.btn-more-details,
+.btn-about-more,
+.pay-type-btn,
+.stage-mode-btn,
+.stage-adv-btn,
+.modal-colour-btn {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Long words in descriptions shouldn't push layouts off-screen */
+.product-desc,
+.modal-desc,
+.about-desc,
+.progress-note p,
+.bill-item-info p {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
